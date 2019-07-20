@@ -2,7 +2,6 @@ using Platformer.Gameplay;
 using UnityEngine;
 using static Platformer.Core.Simulation;
 
-
 namespace Platformer.Mechanics
 {
     /// <summary>
@@ -18,6 +17,7 @@ namespace Platformer.Mechanics
         public bool randomAnimationStartTime = false;
         [Tooltip("List of frames that make up the animation.")]
         public Sprite[] idleAnimation, collectedAnimation;
+        public float respawnInterval;
 
         internal Sprite[] sprites = new Sprite[0];
 
@@ -27,8 +27,11 @@ namespace Platformer.Mechanics
         internal int tokenIndex = -1;
         internal TokenController controller;
         //active frame in animation, updated by the controller.
-        internal int frame = 0;
-        internal bool collected = false;
+        internal int frame;
+        internal bool collected;
+        internal float respawnAt;
+
+        public const int flipTime = 5;
 
         void Awake()
         {
@@ -36,6 +39,26 @@ namespace Platformer.Mechanics
             if (randomAnimationStartTime)
                 frame = Random.Range(0, sprites.Length);
             sprites = idleAnimation;
+        }
+
+        void Update()
+        {
+            if (respawnAt <= Time.time)
+            {
+                var gameArea = GameObject.Find("GameArea");
+                var gameAreaCollider = gameArea.GetComponent<Collider2D>();
+                var bounds = gameAreaCollider.bounds;
+
+                var x = Random.Range(bounds.min.x, bounds.max.x);
+                var y = Random.Range(bounds.min.y, bounds.max.y);
+                var position = new Vector3(x, y, 0);
+
+                renderer.transform.position = position;
+
+                collected = false;
+                sprites = idleAnimation;
+                respawnAt = Time.time + respawnInterval;
+            }
         }
 
         void OnTriggerEnter2D(Collider2D other)
@@ -48,15 +71,32 @@ namespace Platformer.Mechanics
         void OnPlayerEnter(PlayerController player)
         {
             if (collected) return;
-            //disable the gameObject and remove it from the controller update list.
-            frame = 0;
+
+            //frame = 0;
             sprites = collectedAnimation;
-            if (controller != null)
-                collected = true;
+            collected = true;
+            renderer.transform.position = new Vector3(-1000, -1000, 0);
+
+            if (player.isCatcher)
+            {
+                var mousePlayers = PlayerController.GetNonChasers();
+                foreach (var mousePlayer in mousePlayers)
+                {
+                    mousePlayer.hrzFlippedUntil = Time.time + flipTime;
+                    mousePlayer.vrtFlippedUntil = Time.time + flipTime;
+                }
+            }
+
             //send an event into the gameplay system to perform some behaviour.
-            var ev = Schedule<PlayerTokenCollision>();
-            ev.token = this;
-            ev.player = player;
+            //var ev = Schedule<PlayerTokenCollision>();
+            //ev.token = this;
+            //ev.player = player;
         }
+
+        //void int GetRandomAction(bool isCatcher)
+        //{
+        //    var chances = new
+
+        //}
     }
 }

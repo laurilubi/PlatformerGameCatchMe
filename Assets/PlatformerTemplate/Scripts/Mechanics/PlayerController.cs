@@ -38,8 +38,8 @@ namespace Platformer.Mechanics
         internal float hrzAcc;
         internal float maxSpeed;
         internal float jumpTakeOffSpeed;
-        internal bool isHrzFlipped;
-        internal bool isVrtFlipped;
+        internal float hrzFlippedUntil;
+        internal float vrtFlippedUntil;
         internal float teleportableAfter;
         internal bool isDropping;
         internal float droppableAfter;
@@ -120,39 +120,50 @@ namespace Platformer.Mechanics
 
             UpdateJumpState();
 
-            if (isDropping && hitBufferCount > 0)
+            if (isDropping)
             {
-                var hasLevelItems = hitBuffer.Take(hitBufferCount).Any(_ => _.collider.gameObject.GetComponent<PlayerController>() == null);
-                if (hasLevelItems)
+                var hasCollisionWithLevelItems = hitBufferCount > 0 && hitBuffer.Take(hitBufferCount).Any(_ => _.collider.gameObject.GetComponent<PlayerController>() == null);
+                if (hasCollisionWithLevelItems || velocity.y >= 0)
                 {
                     isDropping = false;
                     stunnedUntil = Time.time + 0.75f * dropStunPeriod;
                 }
             }
 
+            //if (droppableAfter < Time.time) isDropping = false;
+
             base.Update();
         }
 
         private float GetXAxis()
         {
-            if (Time.time < stunnedUntil) return 0;
+            if (Time.time < stunnedUntil)
+            {
+                return 0;
+            }
 
             var xAxis = Input.GetAxis($"{playerId}-Horizontal");
             if (xAxis < -minimum) xAxis = -1;
             else if (xAxis > minimum) xAxis = 1;
             else xAxis = 0;
 
-            if (isHrzFlipped) xAxis *= -1;
+            if (Time.time < hrzFlippedUntil) xAxis *= -1;
             return xAxis;
         }
 
         private float GetYAxis()
         {
-            if (Time.time < stunnedUntil) return 0;
+            if (Time.time < stunnedUntil)
+            {
+                return 0;
+            }
 
             var yAxis = Input.GetAxis($"{playerId}-Vertical");
 
-            if (isVrtFlipped) yAxis *= -1;
+            if (Time.time < vrtFlippedUntil)
+            {
+                yAxis *= -1;
+            }
             return yAxis;
         }
 
@@ -280,6 +291,21 @@ namespace Platformer.Mechanics
                     otherPlayer.MakeCatcher(this);
                 }
             }
+        }
+
+        public static PlayerController[] GetPlayers()
+        {
+            return new[]
+            {
+                GameObject.Find("P1").GetComponent<PlayerController>(),
+                GameObject.Find("P2").GetComponent<PlayerController>(),
+                GameObject.Find("P3").GetComponent<PlayerController>()
+            };
+        }
+
+        public static PlayerController[] GetNonChasers()
+        {
+            return GetPlayers().Where(_ => _.isCatcher == false).ToArray();
         }
 
         public enum JumpState
