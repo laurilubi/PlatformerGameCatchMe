@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Platformer.Mechanics
 {
@@ -72,6 +74,22 @@ namespace Platformer.Mechanics
             body.position = position;
             velocity *= multiplier.Value;
             body.velocity *= multiplier.Value;
+        }
+
+        public void TeleportRandom(Bounds? bounds = null, Vector2? multiplier = null)
+        {
+            if (bounds == null)
+            {
+                var gameArea = GameObject.Find("GameArea");
+                var gameAreaCollider = gameArea.GetComponent<Collider2D>();
+                bounds = gameAreaCollider.bounds;
+            }
+
+            var x = UnityEngine.Random.Range(bounds.Value.min.x, bounds.Value.max.x);
+            var y = UnityEngine.Random.Range(bounds.Value.min.y, bounds.Value.max.y);
+            var position = new Vector3(x, y, 0);
+
+            Teleport(position, multiplier);
         }
 
         protected virtual void OnEnable()

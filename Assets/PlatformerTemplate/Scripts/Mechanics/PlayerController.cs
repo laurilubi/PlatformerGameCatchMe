@@ -118,7 +118,6 @@ namespace Platformer.Mechanics
             //    Schedule<PlayerStopJump>().player = this;
             //}
 
-
             UpdateJumpState();
 
             if (isDropping && hitBufferCount > 0)
@@ -250,12 +249,12 @@ namespace Platformer.Mechanics
             if (previousCatcher == null) return;
 
             previousCatcher.isCatcher = false;
-            previousCatcher.catchableAfter = Time.time + 4;
+            previousCatcher.catchableAfter = Time.time + 0.1f;
 
             previousCatcher.transform.localScale = new Vector2(0.4f, 0.4f);
             previousCatcher.maxSpeed = previousCatcher.defaultMaxSpeed;
 
-            //previousCatcher.Teleport(previousCatcher.body.position + new Vector2(100f, 100f));
+            previousCatcher.TeleportRandom();
         }
 
         void OnCollisionEnter2D(Collision2D collision)
