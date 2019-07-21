@@ -1,4 +1,6 @@
 using Platformer.Gameplay;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static Platformer.Core.Simulation;
 
@@ -32,6 +34,8 @@ namespace Platformer.Mechanics
         internal float respawnAt;
 
         public const int flipTime = 5;
+        public const float teleportRangeMin = 1;
+        public const float teleportRangeMax = 3;
 
         void Awake()
         {
@@ -72,31 +76,111 @@ namespace Platformer.Mechanics
         {
             if (collected) return;
 
-            //frame = 0;
             sprites = collectedAnimation;
             collected = true;
             renderer.transform.position = new Vector3(-1000, -1000, 0);
 
-            if (player.isCatcher)
+            var randomAction = GetRandomAction(player.isCatcher);
+            switch (randomAction)
             {
-                var mousePlayers = PlayerController.GetNonChasers();
-                foreach (var mousePlayer in mousePlayers)
-                {
-                    mousePlayer.hrzFlippedUntil = Time.time + flipTime;
-                    mousePlayer.vrtFlippedUntil = Time.time + flipTime;
-                }
+                case RandomAction.FlipNonChasers:
+                    FlipNonChasers();
+                    break;
+                case RandomAction.FlipChaser:
+                    FlipCatcher();
+                    break;
+                case RandomAction.StunNonChasers:
+                    StunNonChasers();
+                    break;
+                case RandomAction.TeleportClose:
+                    TeleportCloseToChaser();
+                    break;
             }
-
-            //send an event into the gameplay system to perform some behaviour.
-            //var ev = Schedule<PlayerTokenCollision>();
-            //ev.token = this;
-            //ev.player = player;
         }
 
-        //void int GetRandomAction(bool isCatcher)
-        //{
-        //    var chances = new
+        void FlipNonChasers()
+        {
+            var nonChasers = PlayerController.GetNonChasers();
+            foreach (var player in nonChasers)
+            {
+                player.hrzFlippedUntil = Time.time + flipTime;
+                player.vrtFlippedUntil = Time.time + flipTime;
+            }
+        }
 
-        //}
+        void FlipCatcher()
+        {
+            var chaser = PlayerController.GetPlayers().FirstOrDefault(_ => _.isCatcher);
+            if (chaser == null) return;
+
+            chaser.hrzFlippedUntil = Time.time + flipTime;
+            chaser.vrtFlippedUntil = Time.time + flipTime;
+        }
+
+        void StunNonChasers()
+        {
+            var nonChasers = PlayerController.GetNonChasers();
+            foreach (var player in nonChasers)
+            {
+                player.stunnedUntil = Time.time + 1.5f * PlayerController.dropStunPeriod;
+                player.vrtFlippedUntil = Time.time + 1.5f * PlayerController.dropStunPeriod;
+            }
+        }
+
+        void TeleportCloseToChaser()
+        {
+            var catcher = PlayerController.GetPlayers().FirstOrDefault(_ => _.isCatcher);
+            if (catcher == null) return;
+
+            var nonChasers = PlayerController.GetNonChasers();
+            foreach (var player in nonChasers)
+            {
+                var direction = new Vector3(Random.Range(-1, 1), Random.Range(-1, 1), 0);
+                var distance = Random.Range(teleportRangeMin, teleportRangeMax);
+
+                var pos = catcher.gameObject.transform.position + direction.normalized * distance;
+                player.Teleport(pos, new Vector2(1, 1));
+            }
+        }
+
+        readonly Dictionary<RandomAction, int> catherRandomActionChances = new Dictionary<RandomAction, int> {
+            { RandomAction.None, 20 },
+            { RandomAction.FlipNonChasers, 35 },
+            { RandomAction.FlipChaser, 5 },
+            { RandomAction.StunNonChasers, 35 },
+            { RandomAction.TeleportClose, 35 }
+        };
+        readonly Dictionary<RandomAction, int> nonCatherRandomActionChances = new Dictionary<RandomAction, int> {
+            { RandomAction.None, 60 },
+            { RandomAction.FlipNonChasers, 5 },
+            { RandomAction.FlipChaser, 5 },
+            { RandomAction.StunNonChasers, 5 },
+            { RandomAction.TeleportClose, 15 }
+        };
+        RandomAction GetRandomAction(bool isCatcher)
+        {
+            var chances = isCatcher ? catherRandomActionChances : nonCatherRandomActionChances;
+            var max = chances.Values.Sum();
+
+            var selected = Random.Range(0, max);
+
+            var pointer = 0;
+            foreach (var chance in chances)
+            {
+                pointer += chance.Value;
+                if (pointer >= selected) return chance.Key;
+            }
+
+            return chances.Last().Key; // fallback
+        }
+
+        public enum RandomAction
+        {
+            None,
+            FlipNonChasers,
+            FlipChaser,
+            StunNonChasers,
+            TeleportClose
+        }
     }
 }

@@ -68,20 +68,17 @@ namespace Platformer.Mechanics
             if (player != null) OnPlayerEnter(player);
         }
 
-        void OnPlayerEnter(PlayerController player)
-        {
+        void OnPlayerEnter (PlayerController player) {
             if (collected) return;
 
             //frame = 0;
             sprites = collectedAnimation;
             collected = true;
-            renderer.transform.position = new Vector3(-1000, -1000, 0);
+            renderer.transform.position = new Vector3 (-1000, -1000, 0);
 
-            if (player.isCatcher)
-            {
-                var mousePlayers = PlayerController.GetNonChasers();
-                foreach (var mousePlayer in mousePlayers)
-                {
+            if (player.isCatcher) {
+                var mousePlayers = PlayerController.GetNonChasers ();
+                foreach (var mousePlayer in mousePlayers) {
                     mousePlayer.hrzFlippedUntil = Time.time + flipTime;
                     mousePlayer.vrtFlippedUntil = Time.time + flipTime;
                 }
@@ -93,10 +90,37 @@ namespace Platformer.Mechanics
             //ev.player = player;
         }
 
-        //void int GetRandomAction(bool isCatcher)
-        //{
-        //    var chances = new
+        var catherRandomActionChances = new Dictionary<RandomAction, int> { 
+            { RandomAction.None, 20 },
+            { RandomAction.FlipNonChasers, 40 },
+            { RandomAction.FlipChaser, 5 },
+            { RandomAction.StunNonChasers, 40 }
+        };
+        var nonCatherRandomActionChances = new Dictionary<RandomAction, int> {
+             { RandomAction.None, 80 },
+            { RandomAction.FlipNonChasers, 5 },
+            { RandomAction.FlipChaser, 5 },
+            { RandomAction.StunNonChasers, 5 }
+        };
+        void int GetRandomAction (bool isCatcher) {
+            var chances = isCatcher?catherRandomActionChances:nonCatherRandomActionChances;
+            var max = chances.Sum(_=>_.Value);
 
-        //}
+            var selected = Random.Range(0, max);
+
+            var pointer = 0;
+            foreach (var chance in chances){
+                pointer+=chance.Value;
+
+            }
+
+        }
+
+        public enum RandomAction {
+            None,
+            FlipNonChasers,
+            FlipChaser,
+            StunNonChasers
+        }
     }
 }

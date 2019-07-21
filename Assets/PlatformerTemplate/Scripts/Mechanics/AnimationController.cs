@@ -38,12 +38,14 @@ namespace Platformer.Mechanics
 
         SpriteRenderer spriteRenderer;
         Animator animator;
+        PlayerController player;
         PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
         protected virtual void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             animator = GetComponent<Animator>();
+            player = GetComponent<PlayerController>();
         }
 
         protected override void ComputeVelocity()

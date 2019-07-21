@@ -245,6 +245,14 @@ namespace Platformer.Mechanics
             else if (move.x < -minimum)
                 spriteRenderer.flipX = true;
 
+            spriteRenderer.flipY = Time.time < vrtFlippedUntil;
+            var scaleY = Time.time < stunnedUntil
+                ? 0.2f
+                : isCatcher
+                    ? 0.55f
+                    : 0.4f;
+            spriteRenderer.transform.localScale = new Vector2(spriteRenderer.transform.localScale.x, scaleY);
+
             animator.SetBool("grounded", IsGrounded);
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / maxSpeed);
 
