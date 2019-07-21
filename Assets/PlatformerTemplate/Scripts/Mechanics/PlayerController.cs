@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Platformer.Gameplay;
 using static Platformer.Core.Simulation;
 using Platformer.Model;
-using Platformer.Core;
 
 namespace Platformer.Mechanics
 {
@@ -29,7 +26,6 @@ namespace Platformer.Mechanics
         internal bool stopJump;
         internal new Collider2D collider;
         internal new AudioSource audio;
-        internal Health health;
         internal float stunnedUntil;
         internal int jumpStepCount;
         internal bool isCatcher;
@@ -58,7 +54,6 @@ namespace Platformer.Mechanics
 
         void Awake()
         {
-            health = GetComponent<Health>();
             audio = GetComponent<AudioSource>();
             collider = GetComponent<Collider2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
@@ -68,8 +63,6 @@ namespace Platformer.Mechanics
             hrzAcc = defaultHrzAcc;
             maxSpeed = defaultMaxSpeed;
             jumpTakeOffSpeed = defaultJumpTakeOffSpeed;
-
-            if (playerId == "P1") MakeCatcher(null);
         }
 
         protected override void Update()
@@ -108,7 +101,7 @@ namespace Platformer.Mechanics
             else if (yAxis < -0.2f && CanDrop())
             {
                 isDropping = true;
-                droppableAfter = Time.time + 2 * dropStunPeriod;
+                droppableAfter = Time.time + 2;
                 velocity.x *= 2;
                 velocity.y = -1.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
             }
@@ -119,18 +112,6 @@ namespace Platformer.Mechanics
             //}
 
             UpdateJumpState();
-
-            if (isDropping)
-            {
-                var hasCollisionWithLevelItems = hitBufferCount > 0 && hitBuffer.Take(hitBufferCount).Any(_ => _.collider.gameObject.GetComponent<PlayerController>() == null);
-                if (hasCollisionWithLevelItems || velocity.y >= 0)
-                {
-                    isDropping = false;
-                    stunnedUntil = Time.time + 0.75f * dropStunPeriod;
-                }
-            }
-
-            //if (droppableAfter < Time.time) isDropping = false;
 
             base.Update();
         }
@@ -276,39 +257,9 @@ namespace Platformer.Mechanics
             previousCatcher.TeleportRandom();
         }
 
-        void OnCollisionEnter2D(Collision2D collision)
-        {
-            if (isDropping == false && isCatcher == false) return;
-
-            var otherPlayer = collision.gameObject.GetComponent<PlayerController>();
-            if (otherPlayer == null) return;
-
-            if (isDropping)
-            {
-                isDropping = false;
-                if (otherPlayer.stunnedUntil < Time.time)
-                {
-                    otherPlayer.stunnedUntil = Time.time + dropStunPeriod;
-                }
-            }
-
-            if (isCatcher && stunnedUntil < Time.time)
-            {
-                if (otherPlayer.catchableAfter < Time.time && otherPlayer.isDropping == false)
-                {
-                    otherPlayer.MakeCatcher(this);
-                }
-            }
-        }
-
         public static PlayerController[] GetPlayers()
         {
-            return new[]
-            {
-                GameObject.Find("P1").GetComponent<PlayerController>(),
-                GameObject.Find("P2").GetComponent<PlayerController>(),
-                GameObject.Find("P3").GetComponent<PlayerController>()
-            };
+            return GameController.Instance.model.players.ToArray();
         }
 
         public static PlayerController[] GetNonChasers()

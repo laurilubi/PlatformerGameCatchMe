@@ -34,8 +34,8 @@ namespace Platformer.Mechanics
         internal float respawnAt;
 
         public const int flipTime = 5;
-        public const float teleportRangeMin = 1;
-        public const float teleportRangeMax = 3;
+        public const float teleportRangeMin = 2;
+        public const float teleportRangeMax = 4;
 
         void Awake()
         {
@@ -103,8 +103,8 @@ namespace Platformer.Mechanics
             var nonChasers = PlayerController.GetNonChasers();
             foreach (var player in nonChasers)
             {
-                player.hrzFlippedUntil = Time.time + flipTime;
-                player.vrtFlippedUntil = Time.time + flipTime;
+                player.hrzFlippedUntil = Time.time + 1.2f*flipTime;
+                player.vrtFlippedUntil = Time.time + 1.2f * flipTime;
             }
         }
 
@@ -113,8 +113,8 @@ namespace Platformer.Mechanics
             var chaser = PlayerController.GetPlayers().FirstOrDefault(_ => _.isCatcher);
             if (chaser == null) return;
 
-            chaser.hrzFlippedUntil = Time.time + flipTime;
-            chaser.vrtFlippedUntil = Time.time + flipTime;
+            chaser.hrzFlippedUntil = Time.time + 1.2f * flipTime;
+            chaser.vrtFlippedUntil = Time.time + 1.2f * flipTime;
         }
 
         void StunNonChasers()
@@ -122,8 +122,8 @@ namespace Platformer.Mechanics
             var nonChasers = PlayerController.GetNonChasers();
             foreach (var player in nonChasers)
             {
-                player.stunnedUntil = Time.time + 1.5f * PlayerController.dropStunPeriod;
-                player.vrtFlippedUntil = Time.time + 1.5f * PlayerController.dropStunPeriod;
+                player.stunnedUntil = Time.time + 1.1f * PlayerController.dropStunPeriod;
+                player.vrtFlippedUntil = Time.time + 1.1f * PlayerController.dropStunPeriod;
             }
         }
 
@@ -135,10 +135,10 @@ namespace Platformer.Mechanics
             var nonChasers = PlayerController.GetNonChasers();
             foreach (var player in nonChasers)
             {
-                var direction = new Vector3(Random.Range(-1, 1), Random.Range(-1, 1), 0);
+                var direction = new Vector3(Random.Range(-1, 1), Random.Range(-1, 1), 0).normalized;
                 var distance = Random.Range(teleportRangeMin, teleportRangeMax);
 
-                var pos = catcher.gameObject.transform.position + direction.normalized * distance;
+                var pos = catcher.gameObject.transform.position + direction * distance;
                 player.Teleport(pos, new Vector2(1, 1));
             }
         }

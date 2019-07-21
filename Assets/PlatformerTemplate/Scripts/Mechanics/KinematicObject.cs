@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
@@ -36,9 +37,8 @@ namespace Platformer.Mechanics
         protected Vector2 groundNormal;
         protected Rigidbody2D body;
         protected ContactFilter2D contactFilter;
-        protected RaycastHit2D[] hitBuffer = new RaycastHit2D[16];
-        protected int hitBufferCount;
-        protected RaycastHit2D[] secondHitBuffer = new RaycastHit2D[16];
+        protected Collider2D[] colliders;
+
 
         protected const float minMoveDistance = 0.001f;
         protected const float shellRadius = 0.01f;
@@ -108,6 +108,10 @@ namespace Platformer.Mechanics
             contactFilter.useTriggers = false;
             contactFilter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
             contactFilter.useLayerMask = true;
+
+            List<Collider2D> collidersTmp = new List<Collider2D>();
+            var colliderCount = body.GetAttachedColliders(collidersTmp);
+            colliders = collidersTmp.Take(colliderCount).Where(_ => _.isTrigger == false).ToArray();
         }
 
         protected virtual void Update()
@@ -153,23 +157,11 @@ namespace Platformer.Mechanics
             if (distance > minMoveDistance)
             {
                 // check if we hit anything in current direction of travel
-                int count;
-                RaycastHit2D[] buffer;
-                if (yMovement)
-                {
-                    buffer = secondHitBuffer;
-                    count = body.Cast(move, contactFilter, buffer, distance + shellRadius);
-                }
-                else
-                {
-                    buffer = hitBuffer;
-                    count = body.Cast(move, contactFilter, buffer, distance + shellRadius);
-                    hitBufferCount = count;
-                }
+                var hits = GetHits(move, distance + shellRadius);
 
-                for (var i = 0; i < count; i++)
+                foreach (var hit in hits)
                 {
-                    var currentNormal = buffer[i].normal;
+                    var currentNormal = hit.normal;
 
                     // is this surface flat enough to land on?
                     if (currentNormal.y > minGroundNormalY)
@@ -200,12 +192,24 @@ namespace Platformer.Mechanics
                     }
 
                     // remove shellDistance from actual move distance.
-                    var modifiedDistance = buffer[i].distance - shellRadius;
+                    var modifiedDistance = hit.distance - shellRadius;
                     distance = modifiedDistance < distance ? modifiedDistance : distance;
                 }
             }
 
             body.position = body.position + move.normalized * distance;
+        }
+
+        List<RaycastHit2D> GetHits(Vector2 direction, float distance)
+        {
+            var hits = new List<RaycastHit2D>();
+            foreach (var collider in colliders)
+            {
+                var results = new List<RaycastHit2D>();
+                var count = collider.Cast(direction, contactFilter, results, distance);
+                hits.AddRange(results.Take(count));
+            }
+            return hits;
         }
     }
 }

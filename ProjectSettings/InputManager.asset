@@ -341,3 +341,35 @@ InputManager:
     type: 0
     axis: 1
     joyNum: 3
+  - serializedVersion: 3
+    m_Name: P4-Horizontal
+    descriptiveName: 
+    descriptiveNegativeName: 
+    negativeButton: '[4]'
+    positiveButton: '[6]'
+    altNegativeButton: 
+    altPositiveButton: 
+    gravity: 1000
+    dead: 0.01
+    sensitivity: 100
+    snap: 1
+    invert: 0
+    type: 0
+    axis: 1
+    joyNum: 3
+  - serializedVersion: 3
+    m_Name: P4-Vertical
+    descriptiveName: 
+    descriptiveNegativeName: 
+    negativeButton: '[5]'
+    positiveButton: '[8]'
+    altNegativeButton: 
+    altPositiveButton: 
+    gravity: 1000
+    dead: 0.01
+    sensitivity: 100
+    snap: 1
+    invert: 0
+    type: 0
+    axis: 1
+    joyNum: 3
