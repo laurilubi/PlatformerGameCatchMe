@@ -21,7 +21,7 @@ namespace Platformer.Mechanics
         [ContextMenu("Find All Tokens")]
         void FindAllTokensInScene()
         {
-            tokens = UnityEngine.Object.FindObjectsOfType<TokenInstance>();
+            tokens = FindObjectsOfType<TokenInstance>();
         }
 
         void Awake()
@@ -40,32 +40,23 @@ namespace Platformer.Mechanics
 
         void Update()
         {
-            //if it's time for the next frame...
-            if (Time.time - nextFrameTime > (1f / frameRate))
+            // if it's time for the next frame
+            if (Time.time - nextFrameTime <= (1f / frameRate)) return;
+
+            // update all tokens with the next animation frame.
+            for (var i = 0; i < tokens.Length; i++)
             {
-                //update all tokens with the next animation frame.
-                for (var i = 0; i < tokens.Length; i++)
-                {
-                    var token = tokens[i];
-                    //if token is null, it has been disabled and is no longer animated.
-                    if (token == null) continue;
+                var token = tokens[i];
+                // if token is null, it has been disabled and is no longer animated.
+                if (token == null) continue;
 
-                    token.renderer.sprite = token.sprites[token.frame];
-                    token.frame = (token.frame + 1) % token.sprites.Length;
-                    //if (token.collected && token.frame == token.sprites.Length - 1)
-                    //{
-                    //    token.gameObject.SetActive(false);
-                    //    //tokens[i] = null;
-                    //}
-                    //else
-                    //{
-                    //    token.frame = (token.frame + 1) % token.sprites.Length;
-                    //}
-                }
-                //calculate the time of the next frame.
-                nextFrameTime += 1f / frameRate;
+                if (token.sprites.Length <= token.frame) continue;
+                token.renderer.sprite = token.sprites[token.frame];
+                token.frame = (token.frame + 1) % token.sprites.Length;
             }
-        }
 
+            // calculate the time of the next frame.
+            nextFrameTime += 1f / frameRate;
+        }
     }
 }
