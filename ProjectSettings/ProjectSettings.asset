@@ -12,8 +12,8 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
-  productName: My First Unity Game
+  companyName: Lauri Lubi
+  productName: Platformer Catch Me
   defaultCursor: {fileID: 2800000, guid: 2dec59160b8daea4984f023c85bc5299, type: 3}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -546,11 +546,11 @@ PlayerSettings:
   m_MobileRenderingPath: 1
   metroPackageName: platformer-template
   metroPackageVersion: 1.0.0.0
-  metroCertificatePath: Assets\WSATestCertificate.pfx
+  metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: DefaultCompany
-  metroCertificateIssuer: DefaultCompany
-  metroCertificateNotAfter: 001c24b9e86dd601
+  metroCertificateSubject: D45E35EB-D131-42D0-9F86-E8051D16CD6E
+  metroCertificateIssuer: D45E35EB-D131-42D0-9F86-E8051D16CD6E
+  metroCertificateNotAfter: 0021f6e8c76ed601
   metroApplicationDescription: platformer-template
   wsaImages:
     131272: Assets/plask-1240x600.png
