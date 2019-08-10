@@ -535,11 +535,11 @@ PlayerSettings:
   m_MobileRenderingPath: 1
   metroPackageName: platformer-template
   metroPackageVersion: 
-  metroCertificatePath: 
+  metroCertificatePath: C:\code\PlatformerGameCatchMe\Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: 
-  metroCertificateIssuer: 
-  metroCertificateNotAfter: 0000000000000000
+  metroCertificateSubject: DefaultCompany
+  metroCertificateIssuer: DefaultCompany
+  metroCertificateNotAfter: 00832e4d5e6bd601
   metroApplicationDescription: platformer-template
   wsaImages: {}
   metroTileShortName: 

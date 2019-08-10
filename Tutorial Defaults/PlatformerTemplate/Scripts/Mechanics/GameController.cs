@@ -25,8 +25,12 @@ namespace Platformer.Mechanics
         {
             Instance = this;
 
-            //model.players.First().isCatcher = true;
-            //model.player.isCatcher = true;
+            foreach (var disabledPlayer in model.players.Skip(model.enabledPlayerCount))
+                disabledPlayer.gameObject.SetActive(false);
+            model.players = model.players.Take(model.enabledPlayerCount).ToArray();
+
+            var catcher = model.players.Skip(Random.Range(0, model.players.Length)).First();
+            catcher.MakeCatcher(null);
         }
 
         void OnDisable()
