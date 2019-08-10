@@ -259,7 +259,7 @@ namespace Platformer.Mechanics
 
         public static PlayerController[] GetPlayers()
         {
-            return GameController.Instance.model.players.ToArray();
+            return GameController.Instance.model.activePlayers.ToArray();
         }
 
         public static PlayerController[] GetNonChasers()

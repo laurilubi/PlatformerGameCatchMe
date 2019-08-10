@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Platformer.Core;
 using Platformer.Model;
@@ -21,16 +22,28 @@ namespace Platformer.Mechanics
         //conveniently configured inside the inspector.
         public PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
-        void OnEnable()
+        public void OnEnable()
         {
             Instance = this;
 
-            foreach (var disabledPlayer in model.players.Skip(model.enabledPlayerCount))
-                disabledPlayer.gameObject.SetActive(false);
-            model.players = model.players.Take(model.enabledPlayerCount).ToArray();
+            var activePlayers = new List<PlayerController>();
+            for (var i = 0; i < model.players.Length; i++)
+            {
+                if (i < model.activePlayerCount)
+                {
+                    if (model.players[i].gameObject.activeSelf == false) model.players[i].gameObject.SetActive(true);
+                    model.players[i].TeleportRandom();
+                    activePlayers.Add(model.players[i]);
+                }
+                else
+                {
+                    model.players[i].gameObject.SetActive(false);
+                }
+            }
+            model.activePlayers = activePlayers.ToArray();
 
-            var catcher = model.players.Skip(Random.Range(0, model.players.Length)).First();
-            catcher.MakeCatcher(null);
+            var catcher = model.activePlayers.Skip(Random.Range(0, model.activePlayers.Length)).FirstOrDefault();
+            catcher?.MakeCatcher(null);
         }
 
         void OnDisable()

@@ -11,9 +11,11 @@ namespace Platformer.Model
     [System.Serializable]
     public class PlatformerModel
     {
-        public int enabledPlayerCount;
+        public int activePlayerCount;
 
         public PlayerController[] players;
+
+        public PlayerController[] activePlayers;
 
         /// <summary>
         /// The spawn point in the scene.
