@@ -103,7 +103,7 @@ namespace Platformer.Mechanics
                 isDropping = true;
                 droppableAfter = Time.time + 2;
                 velocity.x *= 2;
-                velocity.y = -1.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
+                velocity.y = -2.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
             }
             //else if (Input.GetButtonUp("Jump"))
             //{

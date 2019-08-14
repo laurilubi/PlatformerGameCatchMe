@@ -103,8 +103,8 @@ namespace Platformer.Mechanics
             var nonChasers = PlayerController.GetNonChasers();
             foreach (var player in nonChasers)
             {
-                player.hrzFlippedUntil = Time.time + 1.2f*flipTime;
-                player.vrtFlippedUntil = Time.time + 1.2f * flipTime;
+                player.hrzFlippedUntil = Time.time + 1.8f * flipTime;
+                player.vrtFlippedUntil = Time.time + 1.8f * flipTime;
             }
         }
 
@@ -113,8 +113,8 @@ namespace Platformer.Mechanics
             var chaser = PlayerController.GetPlayers().FirstOrDefault(_ => _.isCatcher);
             if (chaser == null) return;
 
-            chaser.hrzFlippedUntil = Time.time + 1.2f * flipTime;
-            chaser.vrtFlippedUntil = Time.time + 1.2f * flipTime;
+            chaser.hrzFlippedUntil = Time.time + 1.8f * flipTime;
+            chaser.vrtFlippedUntil = Time.time + 1.8f * flipTime;
         }
 
         void StunNonChasers()
@@ -122,8 +122,7 @@ namespace Platformer.Mechanics
             var nonChasers = PlayerController.GetNonChasers();
             foreach (var player in nonChasers)
             {
-                player.stunnedUntil = Time.time + 1.1f * PlayerController.dropStunPeriod;
-                player.vrtFlippedUntil = Time.time + 1.1f * PlayerController.dropStunPeriod;
+                player.stunnedUntil = Time.time + 0.7f * PlayerController.dropStunPeriod;
             }
         }
 
@@ -148,14 +147,14 @@ namespace Platformer.Mechanics
             { RandomAction.FlipNonChasers, 35 },
             { RandomAction.FlipChaser, 5 },
             { RandomAction.StunNonChasers, 35 },
-            { RandomAction.TeleportClose, 35 }
+            //{ RandomAction.TeleportClose, 35 }
         };
         readonly Dictionary<RandomAction, int> nonCatherRandomActionChances = new Dictionary<RandomAction, int> {
             { RandomAction.None, 60 },
             { RandomAction.FlipNonChasers, 5 },
-            { RandomAction.FlipChaser, 5 },
+            { RandomAction.FlipChaser, 15 },
             { RandomAction.StunNonChasers, 5 },
-            { RandomAction.TeleportClose, 15 }
+            //{ RandomAction.TeleportClose, 15 }
         };
         RandomAction GetRandomAction(bool isCatcher)
         {
