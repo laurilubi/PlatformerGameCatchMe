@@ -553,6 +553,14 @@ PlayerSettings:
   metroCertificateNotAfter: 0021f6e8c76ed601
   metroApplicationDescription: platformer-template
   wsaImages:
+    65636: Assets/majalogo/majalogo-50x50.png
+    65661: Assets/majalogo/majalogo-63x63.png
+    65676: Assets/majalogo/majalogo-70x70.png
+    65686: Assets/majalogo/majalogo-75x75.png
+    65716: Assets/majalogo/majalogo-90x90.png
+    65736: Assets/majalogo/majalogo-100x100.png
+    65776: Assets/majalogo/majalogo-120x120.png
+    65936: Assets/majalogo/majalogo-200x200.png
     131272: Assets/plask-1240x600.png
   metroTileShortName: Platformer Catch Me
   metroTileShowName: 0
