@@ -246,15 +246,19 @@ namespace Platformer.Mechanics
             maxSpeed = defaultMaxSpeed + 1;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
 
-            if (previousCatcher == null) return;
+            previousCatcher?.UnmakeCatcher(true);
+        }
 
-            previousCatcher.isCatcher = false;
-            previousCatcher.catchableAfter = Time.time + 0.1f;
+        public void UnmakeCatcher(bool teleport)
+        {
+            isCatcher = false;
+            catchableAfter = Time.time + 0.1f;
 
-            previousCatcher.transform.localScale = new Vector2(0.4f, 0.4f);
-            previousCatcher.maxSpeed = previousCatcher.defaultMaxSpeed;
+            transform.localScale = new Vector2(0.4f, 0.4f);
+            maxSpeed = defaultMaxSpeed;
 
-            previousCatcher.TeleportRandom();
+            if (teleport)
+                TeleportRandom();
         }
 
         public static PlayerController[] GetPlayers()

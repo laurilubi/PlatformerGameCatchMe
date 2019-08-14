@@ -26,24 +26,29 @@ namespace Platformer.Mechanics
         {
             Instance = this;
 
+            var catcherIndex = Random.Range(0, model.activePlayerCount);
             var activePlayers = new List<PlayerController>();
             for (var i = 0; i < model.players.Length; i++)
             {
+                var player = model.players[i];
                 if (i < model.activePlayerCount)
                 {
-                    if (model.players[i].gameObject.activeSelf == false) model.players[i].gameObject.SetActive(true);
-                    model.players[i].TeleportRandom();
-                    activePlayers.Add(model.players[i]);
+                    if (player.gameObject.activeSelf == false)
+                        player.gameObject.SetActive(true);
+
+                    if (i == catcherIndex)
+                        player.MakeCatcher(null);
+                    else
+                        player.UnmakeCatcher(true);
+
+                    activePlayers.Add(player);
                 }
                 else
                 {
-                    model.players[i].gameObject.SetActive(false);
+                    player.gameObject.SetActive(false);
                 }
             }
             model.activePlayers = activePlayers.ToArray();
-
-            var catcher = model.activePlayers.Skip(Random.Range(0, model.activePlayers.Length)).FirstOrDefault();
-            catcher?.MakeCatcher(null);
         }
 
         void OnDisable()
