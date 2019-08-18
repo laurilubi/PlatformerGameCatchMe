@@ -898,6 +898,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Auto Letterbox\ForceCameraRatio.cs" />
     <Compile Include="Assets\PlatformerTemplate\Gameplay\EnablePlayerInput.cs" />
     <Compile Include="Assets\PlatformerTemplate\Gameplay\PlayerJumped.cs" />
     <Compile Include="Assets\PlatformerTemplate\Gameplay\PlayerLanded.cs" />
