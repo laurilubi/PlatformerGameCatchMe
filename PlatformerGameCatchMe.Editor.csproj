@@ -715,6 +715,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Auto Letterbox\Editor\ForceCameraRatioEditor.cs" />
     <Compile Include="Assets\PlatformerTemplate\Editor\PatrolPathEditor.cs" />
   </ItemGroup>
   <ItemGroup>
