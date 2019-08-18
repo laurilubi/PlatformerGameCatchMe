@@ -103,7 +103,7 @@ namespace Platformer.Mechanics
                 isDropping = true;
                 droppableAfter = Time.time + 2;
                 velocity.x *= 2;
-                velocity.y = -1.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
+                velocity.y = -2.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
             }
             //else if (Input.GetButtonUp("Jump"))
             //{
@@ -246,20 +246,24 @@ namespace Platformer.Mechanics
             maxSpeed = defaultMaxSpeed + 1;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
 
-            if (previousCatcher == null) return;
+            previousCatcher?.UnmakeCatcher(true);
+        }
 
-            previousCatcher.isCatcher = false;
-            previousCatcher.catchableAfter = Time.time + 0.1f;
+        public void UnmakeCatcher(bool teleport)
+        {
+            isCatcher = false;
+            catchableAfter = Time.time + 0.1f;
 
-            previousCatcher.transform.localScale = new Vector2(0.4f, 0.4f);
-            previousCatcher.maxSpeed = previousCatcher.defaultMaxSpeed;
+            transform.localScale = new Vector2(0.4f, 0.4f);
+            maxSpeed = defaultMaxSpeed;
 
-            previousCatcher.TeleportRandom();
+            if (teleport)
+                TeleportRandom();
         }
 
         public static PlayerController[] GetPlayers()
         {
-            return GameController.Instance.model.players.ToArray();
+            return GameController.Instance.model.activePlayers.ToArray();
         }
 
         public static PlayerController[] GetNonChasers()

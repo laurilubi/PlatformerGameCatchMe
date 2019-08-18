@@ -71,9 +71,11 @@ namespace Platformer.Mechanics
         {
             multiplier = multiplier ?? new Vector2(0, 0);
 
-            body.position = position;
+            transform.localPosition = position;
+            //body.position = position;
+
             velocity *= multiplier.Value;
-            body.velocity *= multiplier.Value;
+            if (body != null) body.velocity *= multiplier.Value;
         }
 
         public void TeleportRandom(Bounds? bounds = null, Vector2? multiplier = null)
