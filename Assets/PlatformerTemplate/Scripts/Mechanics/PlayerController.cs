@@ -243,7 +243,7 @@ namespace Platformer.Mechanics
         public void MakeCatcher(PlayerController previousCatcher)
         {
             isCatcher = true;
-            maxSpeed = defaultMaxSpeed + 1;
+            maxSpeed = defaultMaxSpeed + 0.5f;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
 
             previousCatcher?.UnmakeCatcher(true);
