@@ -919,7 +919,6 @@
     <Compile Include="Assets\PlatformerTemplate\Scripts\Core\Simulation.cs" />
     <Compile Include="Assets\PlatformerTemplate\Scripts\Core\Simulation.Event.cs" />
     <Compile Include="Assets\PlatformerTemplate\Scripts\Core\Simulation.InstanceRegister.cs" />
-    <Compile Include="Assets\PlatformerTemplate\Scripts\Mechanics\AnimationController.cs" />
     <Compile Include="Assets\PlatformerTemplate\Scripts\Mechanics\DeathZone.cs" />
     <Compile Include="Assets\PlatformerTemplate\Scripts\Mechanics\GameController.cs" />
     <Compile Include="Assets\PlatformerTemplate\Scripts\Mechanics\KinematicObject.cs" />
