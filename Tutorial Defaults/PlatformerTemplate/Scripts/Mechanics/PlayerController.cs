@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using Platformer.Gameplay;
 using static Platformer.Core.Simulation;
@@ -18,14 +19,14 @@ namespace Platformer.Mechanics
         public AudioClip ouchAudio;
         public string playerId = "none";
         public float defaultMaxSpeed = 3;
-        public float defaultJumpTakeOffSpeed = 6.2f;
         public float defaultHrzAcc = 4;
 
 
-        internal JumpState jumpState = JumpState.Grounded;
-        internal bool stopJump;
         internal new Collider2D collider;
         internal new AudioSource audio;
+        internal Animator animator;
+        internal JumpState jumpState = JumpState.Grounded;
+        internal bool stopJump;
         internal float stunnedUntil;
         internal int jumpStepCount;
         internal bool isCatcher;
@@ -36,22 +37,25 @@ namespace Platformer.Mechanics
         internal float jumpTakeOffSpeed;
         internal float hrzFlippedUntil;
         internal float vrtFlippedUntil;
+        internal float slipperyUntil;
         internal float teleportableAfter;
         internal bool isDropping;
         internal float droppableAfter;
 
 
-        bool jump;
-        Vector2 move;
-        SpriteRenderer spriteRenderer;
-        internal Animator animator;
-        PlatformerModel model;
+        private bool jump;
+        private Vector2 move;
+        private SpriteRenderer spriteRenderer;
+        private PlatformerModel model;
 
         public const float minimum = 0.01f;
         public const float dropStunPeriod = 2.5f;
+        public const float DefaultJumpTakeOffSpeed = 6.2f;
+        public const float CatcherJumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
 
         public Bounds Bounds => collider.bounds;
 
+        [UsedImplicitly]
         void Awake()
         {
             audio = GetComponent<AudioSource>();
@@ -62,24 +66,27 @@ namespace Platformer.Mechanics
 
             hrzAcc = defaultHrzAcc;
             maxSpeed = defaultMaxSpeed;
-            jumpTakeOffSpeed = defaultJumpTakeOffSpeed;
+            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
         }
 
         protected override void Update()
         {
             var xAxis = GetXAxis();
+            var relHrzAcc = Time.time < slipperyUntil
+                ? hrzAcc * 0.5f
+                : hrzAcc;
             if (Mathf.Abs(xAxis) < minimum)
             {
                 // is stopping
                 if (move.x > minimum)
                 {
                     // still going right
-                    move.x = Math.Max(0, move.x - hrzAcc * 3 * Time.deltaTime);
+                    move.x = Math.Max(0, move.x - relHrzAcc * 3 * Time.deltaTime);
                 }
                 else if (move.x < -minimum)
                 {
                     // still going left
-                    move.x = Math.Min(0, move.x + hrzAcc * 3 * Time.deltaTime);
+                    move.x = Math.Min(0, move.x + relHrzAcc * 3 * Time.deltaTime);
                 }
                 else
                 {
@@ -89,7 +96,7 @@ namespace Platformer.Mechanics
             else
             {
                 // is moving
-                move.x += xAxis * hrzAcc * Time.deltaTime;
+                move.x += xAxis * relHrzAcc * Time.deltaTime;
                 move.x = Cap(move.x);
             }
 
@@ -103,14 +110,10 @@ namespace Platformer.Mechanics
                 isDropping = true;
                 droppableAfter = Time.time + 2;
                 velocity.x *= 2;
-                velocity.y = -2.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
+                velocity.y = -2.5f * jumpTakeOffSpeed * model.jumpModifier;
             }
-            //else if (Input.GetButtonUp("Jump"))
-            //{
-            //    stopJump = true;
-            //    Schedule<PlayerStopJump>().player = this;
-            //}
 
+            //UpdateSlipperyRotation();
             UpdateJumpState();
 
             base.Update();
@@ -155,23 +158,23 @@ namespace Platformer.Mechanics
             return value;
         }
 
-        bool CanJump()
+        private bool CanJump()
         {
             if (Time.time < jumpableAfter) return false;
             if (isDropping) return false;
 
-            if (isCatcher && jumpStepCount < 3) return true;
+            if (isCatcher && jumpStepCount < GameController.Instance.model.catcherMaxJumps) return true;
             if (IsGrounded) return true;
 
             return false;
         }
 
-        bool CanDrop()
+        private bool CanDrop()
         {
             return Time.time >= droppableAfter;
         }
 
-        void UpdateJumpState()
+        private void UpdateJumpState()
         {
             jump = false;
             switch (jumpState)
@@ -205,11 +208,43 @@ namespace Platformer.Mechanics
             }
         }
 
+        private float slipperRotationZDir = 70f;
+        private const float slipperyRotationMaxZ = 0.2f;
+        private void UpdateSlipperyRotation()
+        {
+            if (playerId != "P1") return;
+            //if (Time.time >= slipperyUntil)
+            //{
+            //    transform.rotation = new Quaternion(0, 0, 0, 0);
+            //    return;
+            //}
+
+            transform.Rotate(0, 0, slipperRotationZDir * Time.deltaTime);
+
+            var rotZ = transform.rotation.z;// + slipperRotationZDir * Time.deltaTime;
+            if (rotZ >= slipperyRotationMaxZ)
+            {
+                //rotZ = slipperyRotationMaxZ;
+                slipperRotationZDir *= -1;
+            }
+            else if (rotZ <= -slipperyRotationMaxZ)
+            {
+                //rotZ = -slipperyRotationMaxZ;
+                slipperRotationZDir *= -1;
+            }
+
+
+
+
+            //transform.RotateAroundLocal(new Vector3(0, 0, 0), rotZ); //..SetLookRotation(); = Quaternion.RotateTowards(0, 0, rotZ, 0);
+            //transform.Rotate(0, 0, rotZ); //..SetLookRotation(); = Quaternion.RotateTowards(0, 0, rotZ, 0);
+        }
+
         protected override void ComputeVelocity()
         {
             if (jump)
             {
-                velocity.y = defaultJumpTakeOffSpeed * model.jumpModifier;
+                velocity.y = jumpTakeOffSpeed * model.jumpModifier;
                 jump = false;
             }
             else if (stopJump)
@@ -227,12 +262,17 @@ namespace Platformer.Mechanics
                 spriteRenderer.flipX = true;
 
             spriteRenderer.flipY = Time.time < vrtFlippedUntil;
-            var scaleY = Time.time < stunnedUntil
-                ? 0.2f
+            var scaleX = Time.time < slipperyUntil
+                ? 0.30f
                 : isCatcher
                     ? 0.55f
-                    : 0.4f;
-            spriteRenderer.transform.localScale = new Vector2(spriteRenderer.transform.localScale.x, scaleY);
+                    : 0.40f;
+            var scaleY = Time.time < stunnedUntil
+                ? 0.20f
+                : isCatcher
+                    ? 0.55f
+                    : 0.40f;
+            spriteRenderer.transform.localScale = new Vector2(scaleX, scaleY);
 
             animator.SetBool("grounded", IsGrounded);
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / maxSpeed);
@@ -244,7 +284,10 @@ namespace Platformer.Mechanics
         {
             isCatcher = true;
             maxSpeed = defaultMaxSpeed + 0.5f;
+            jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
+
+            GameController.Instance.CatcherSince = Time.time;
 
             previousCatcher?.UnmakeCatcher(true);
         }
@@ -256,6 +299,7 @@ namespace Platformer.Mechanics
 
             transform.localScale = new Vector2(0.4f, 0.4f);
             maxSpeed = defaultMaxSpeed;
+            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
 
             if (teleport)
                 TeleportRandom();

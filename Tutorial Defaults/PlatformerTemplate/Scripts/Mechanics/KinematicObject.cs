@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using Random = System.Random;
 
@@ -71,8 +72,10 @@ namespace Platformer.Mechanics
         {
             multiplier = multiplier ?? new Vector2(0, 0);
 
-            transform.localPosition = position;
-            //body.position = position;
+            if (body == null)
+                transform.localPosition = position; // fallback but not really tested
+            else
+                body.position = position;
 
             velocity *= multiplier.Value;
             if (body != null) body.velocity *= multiplier.Value;
@@ -94,17 +97,20 @@ namespace Platformer.Mechanics
             Teleport(position, multiplier);
         }
 
+        [UsedImplicitly]
         protected virtual void OnEnable()
         {
             body = GetComponent<Rigidbody2D>();
             body.isKinematic = true;
         }
 
+        [UsedImplicitly]
         protected virtual void OnDisable()
         {
             body.isKinematic = false;
         }
 
+        [UsedImplicitly]
         protected virtual void Start()
         {
             contactFilter.useTriggers = false;
@@ -127,6 +133,7 @@ namespace Platformer.Mechanics
 
         }
 
+        [UsedImplicitly]
         protected virtual void FixedUpdate()
         {
             //if already falling, fall faster than the jump speed, otherwise use normal gravity.

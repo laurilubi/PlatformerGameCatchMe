@@ -1,17 +1,19 @@
-﻿using Platformer.Mechanics;
+﻿using JetBrains.Annotations;
+using Platformer.Mechanics;
 using UnityEngine;
 
 public class PlayerDrop : MonoBehaviour
 {
     PlayerController player;
 
-    // Start is called before the first frame update
-    void Start()
+    [UsedImplicitly]
+    private void Start()
     {
         player = gameObject.GetComponentInParent<PlayerController>();
     }
 
-    void OnTriggerStay2D(Collider2D other)
+    [UsedImplicitly]
+    private void OnTriggerStay2D(Collider2D other)
     {
         if (player.isDropping == false) return;
 
