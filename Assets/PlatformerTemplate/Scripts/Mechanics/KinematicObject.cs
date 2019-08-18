@@ -71,8 +71,10 @@ namespace Platformer.Mechanics
         {
             multiplier = multiplier ?? new Vector2(0, 0);
 
-            transform.localPosition = position;
-            //body.position = position;
+            if (body == null)
+                transform.localPosition = position; // fallback but not really tested
+            else
+                body.position = position;
 
             velocity *= multiplier.Value;
             if (body != null) body.velocity *= multiplier.Value;
