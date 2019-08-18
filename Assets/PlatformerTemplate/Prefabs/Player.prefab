@@ -127,7 +127,6 @@ MonoBehaviour:
   ouchAudio: {fileID: 8300000, guid: 6c05149e5a2fba64ba172e25a61074b7, type: 3}
   playerId: none
   defaultMaxSpeed: 5
-  defaultJumpTakeOffSpeed: 5
   defaultHrzAcc: 4
 --- !u!82 &8509783501685719824
 AudioSource:
