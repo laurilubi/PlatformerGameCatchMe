@@ -18,7 +18,6 @@ namespace Platformer.Mechanics
         public AudioClip ouchAudio;
         public string playerId = "none";
         public float defaultMaxSpeed = 3;
-        public float defaultJumpTakeOffSpeed = 6.2f;
         public float defaultHrzAcc = 4;
 
 
@@ -49,6 +48,8 @@ namespace Platformer.Mechanics
 
         public const float minimum = 0.01f;
         public const float dropStunPeriod = 2.5f;
+        public const float DefaultJumpTakeOffSpeed = 6.2f;
+        public const float CatcherJumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
 
         public Bounds Bounds => collider.bounds;
 
@@ -62,7 +63,7 @@ namespace Platformer.Mechanics
 
             hrzAcc = defaultHrzAcc;
             maxSpeed = defaultMaxSpeed;
-            jumpTakeOffSpeed = defaultJumpTakeOffSpeed;
+            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
         }
 
         protected override void Update()
@@ -103,7 +104,7 @@ namespace Platformer.Mechanics
                 isDropping = true;
                 droppableAfter = Time.time + 2;
                 velocity.x *= 2;
-                velocity.y = -2.5f * defaultJumpTakeOffSpeed * model.jumpModifier;
+                velocity.y = -2.5f * jumpTakeOffSpeed * model.jumpModifier;
             }
             //else if (Input.GetButtonUp("Jump"))
             //{
@@ -160,7 +161,7 @@ namespace Platformer.Mechanics
             if (Time.time < jumpableAfter) return false;
             if (isDropping) return false;
 
-            if (isCatcher && jumpStepCount < 3) return true;
+            if (isCatcher && jumpStepCount < GameController.Instance.model.catcherMaxJumps) return true;
             if (IsGrounded) return true;
 
             return false;
@@ -209,7 +210,7 @@ namespace Platformer.Mechanics
         {
             if (jump)
             {
-                velocity.y = defaultJumpTakeOffSpeed * model.jumpModifier;
+                velocity.y = jumpTakeOffSpeed * model.jumpModifier;
                 jump = false;
             }
             else if (stopJump)
@@ -244,6 +245,7 @@ namespace Platformer.Mechanics
         {
             isCatcher = true;
             maxSpeed = defaultMaxSpeed + 0.5f;
+            jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
 
             previousCatcher?.UnmakeCatcher(true);
@@ -256,6 +258,7 @@ namespace Platformer.Mechanics
 
             transform.localScale = new Vector2(0.4f, 0.4f);
             maxSpeed = defaultMaxSpeed;
+            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
 
             if (teleport)
                 TeleportRandom();

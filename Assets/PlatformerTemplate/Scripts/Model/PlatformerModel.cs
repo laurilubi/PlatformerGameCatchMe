@@ -1,5 +1,4 @@
 using Platformer.Mechanics;
-using UnityEngine;
 
 namespace Platformer.Model
 {
@@ -17,10 +16,7 @@ namespace Platformer.Model
 
         public PlayerController[] activePlayers;
 
-        /// <summary>
-        /// The spawn point in the scene.
-        /// </summary>
-        public Transform spawnPoint;
+        public int catcherMaxJumps;
 
         /// <summary>
         /// A global jump modifier applied to all initial jump velocities.

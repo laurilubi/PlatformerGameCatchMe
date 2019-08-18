@@ -144297,6 +144297,7 @@ MonoBehaviour:
     - {fileID: 2069995478}
     - {fileID: 352203012}
     activePlayers: []
+    catcherMaxJumps: 2
     spawnPoint: {fileID: 0}
     jumpModifier: 0.9
     jumpDeceleration: 0
