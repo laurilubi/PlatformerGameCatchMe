@@ -1,7 +1,5 @@
 ﻿using Platformer.Mechanics;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,6 +25,7 @@ namespace Platformer.UI
             }
         }
 
+        [UsedImplicitly]
         void OnEnable()
         {
             GameController = GameController.Instance;
@@ -39,11 +38,11 @@ namespace Platformer.UI
         //    VisualizePlayerCount();
         //}
 
+        [UsedImplicitly]
         public void SetPlayerCount(int count)
         {
-            GameController.model.activePlayerCount = count;
+            GameController.SetupPlayers(count);
             VisualizePlayerCount();
-            StartGame();
         }
 
         public void VisualizePlayerCount()
@@ -54,38 +53,10 @@ namespace Platformer.UI
             button.GetComponent<Button>().Select();
         }
 
+        [UsedImplicitly]
         public void SetLevel(int level)
         {
-            var gameArea = GameObject.Find("GameArea");
-            var camera = GameObject.Find("Main Camera");
-
-            switch (level)
-            {
-                case 1:
-                    gameArea.transform.localPosition = new Vector3(-9.86f, 12.85f, 0);
-                    break;
-                case 2:
-                    gameArea.transform.localPosition = new Vector3(4.35f, 12.85f, 0);
-                    break;
-                case 3:
-                    gameArea.transform.localPosition = new Vector3(18.34f, 12.85f, 0);
-                    break;
-                default:
-                    throw new Exception($"Invalid level {level}");
-            }
-
-            camera.transform.localPosition = new Vector3(gameArea.transform.localPosition.x + 11.51f, gameArea.transform.localPosition.y - 5.4f, -9f);
-
-            StartGame();
-        }
-
-        public void StartGame()
-        {
-            GameController.OnEnable();
-            //GameController.gameObject.SetActive(false);
-            //GameController.gameObject.SetActive(true);
-
-            //this.gameObject.SetActive(false);
+            GameController.SetupLevel(level);
         }
     }
 }

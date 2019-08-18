@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using JetBrains.Annotations;
 using Platformer.Core;
 using Platformer.Model;
 using UnityEngine;
@@ -26,6 +26,43 @@ namespace Platformer.Mechanics
         {
             Instance = this;
 
+            SetupLevel(1);
+            SetupPlayers(null);
+        }
+
+        [UsedImplicitly]
+        void OnDisable()
+        {
+            if (Instance == this) Instance = null;
+        }
+
+        [UsedImplicitly]
+        void Update()
+        {
+            if (Instance == this) Simulation.Tick();
+        }
+
+        public void SetupLevel(int level)
+        {
+            var levelContainer = GameObject.Find("Levels");
+            foreach (Transform child in levelContainer.transform)
+            {
+                if (child.name.StartsWith("L") == false) continue;
+                if (child.name == $"L{level}")
+                {
+                    if (child.gameObject.activeSelf == false) child.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (child.gameObject.activeSelf) child.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        public void SetupPlayers(int? activePlayerCount)
+        {
+            if (activePlayerCount != null) model.activePlayerCount = activePlayerCount.Value;
+
             var catcherIndex = Random.Range(0, model.activePlayerCount);
             var activePlayers = new List<PlayerController>();
             for (var i = 0; i < model.players.Length; i++)
@@ -49,16 +86,6 @@ namespace Platformer.Mechanics
                 }
             }
             model.activePlayers = activePlayers.ToArray();
-        }
-
-        void OnDisable()
-        {
-            if (Instance == this) Instance = null;
-        }
-
-        void Update()
-        {
-            if (Instance == this) Simulation.Tick();
         }
     }
 }
