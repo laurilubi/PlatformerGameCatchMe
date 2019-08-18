@@ -1,8 +1,9 @@
-using Platformer.Gameplay;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
-using static Platformer.Core.Simulation;
+using Random = UnityEngine.Random;
 
 namespace Platformer.Mechanics
 {
@@ -25,27 +26,29 @@ namespace Platformer.Mechanics
 
         new internal SpriteRenderer renderer;
 
-        //unique index which is assigned by the TokenController in a scene.
         internal int tokenIndex = -1;
         internal TokenController controller;
-        //active frame in animation, updated by the controller.
-        internal int frame;
+        internal int frame;  // active frame in animation, updated by the controller.
         internal bool collected;
         internal float respawnAt;
+        internal RandomAction action = RandomAction.None;
 
-        public const int flipTime = 5;
-        public const float teleportRangeMin = 2;
-        public const float teleportRangeMax = 4;
+        public const float FlipTime = 9;
 
-        void Awake()
+        [UsedImplicitly]
+        private void Awake()
         {
             renderer = GetComponent<SpriteRenderer>();
             if (randomAnimationStartTime)
                 frame = Random.Range(0, sprites.Length);
             sprites = idleAnimation;
+
+            action = GetRandomAction();
+            AutoSetColor();
         }
 
-        void Update()
+        [UsedImplicitly]
+        private void Update()
         {
             if (respawnAt <= Time.time)
             {
@@ -62,17 +65,21 @@ namespace Platformer.Mechanics
                 collected = false;
                 sprites = idleAnimation;
                 respawnAt = Time.time + respawnInterval;
+
+                action = GetRandomAction();
+                AutoSetColor();
             }
         }
 
-        void OnTriggerEnter2D(Collider2D other)
+        [UsedImplicitly]
+        private void OnTriggerEnter2D(Collider2D other)
         {
             //only exectue OnPlayerEnter if the player collides with this token.
             var player = other.gameObject.GetComponent<PlayerController>();
             if (player != null) OnPlayerEnter(player);
         }
 
-        void OnPlayerEnter(PlayerController player)
+        private void OnPlayerEnter(PlayerController player)
         {
             if (collected) return;
 
@@ -80,106 +87,123 @@ namespace Platformer.Mechanics
             collected = true;
             renderer.transform.position = new Vector3(-1000, -1000, 0);
 
-            var randomAction = GetRandomAction(player.isCatcher);
-            switch (randomAction)
+            var targets = GetTargets(player);
+            if (targets.Any() == false) return;
+
+            switch (action)
             {
-                case RandomAction.FlipNonChasers:
-                    FlipNonChasers();
+                case RandomAction.None:
                     break;
-                case RandomAction.FlipChaser:
-                    FlipCatcher();
+                case RandomAction.FlipControls:
+                    FlipControls(targets);
                     break;
-                case RandomAction.StunNonChasers:
-                    StunNonChasers();
+                case RandomAction.Stun:
+                    Stun(targets);
                     break;
-                case RandomAction.TeleportClose:
-                    TeleportCloseToChaser();
+                case RandomAction.Slippery:
+                    MakeSlippery(targets);
                     break;
             }
         }
 
-        void FlipNonChasers()
+        private List<PlayerController> GetTargets(PlayerController player)
         {
-            var nonChasers = PlayerController.GetNonChasers();
-            foreach (var player in nonChasers)
+            if (player.isCatcher) return PlayerController.GetNonChasers().ToList();
+
+            var nonChasersChance = 10 + GameController.Instance.ChaserSince;
+            var nothingChance = 10 + 0.3f * GameController.Instance.ChaserSince;
+            var catcherChance = 20;
+            var dice = Random.Range(0, nonChasersChance + nothingChance + catcherChance);
+
+            if (dice < nonChasersChance) return PlayerController.GetNonChasers().ToList();
+            if (dice < nonChasersChance + nothingChance) return new List<PlayerController>();
+            return PlayerController.GetPlayers().Where(_ => _.isCatcher).ToList();
+        }
+
+        private bool IsTargetCatcher(List<PlayerController> targets)
+        {
+            return targets.FirstOrDefault()?.isCatcher ?? false;
+        }
+
+        private void FlipControls(List<PlayerController> targets)
+        {
+            var duration = FlipTime;
+            if (IsTargetCatcher(targets) == false)
+                duration *= Math.Max(GameController.Instance.ChaserSince / 25f, 1f);
+
+            foreach (var target in targets)
             {
-                player.hrzFlippedUntil = Time.time + 1.8f * flipTime;
-                player.vrtFlippedUntil = Time.time + 1.8f * flipTime;
+                target.hrzFlippedUntil = Time.time + duration;
+                target.vrtFlippedUntil = Time.time + duration;
             }
         }
 
-        void FlipCatcher()
+        private void Stun(List<PlayerController> targets)
         {
-            var chaser = PlayerController.GetPlayers().FirstOrDefault(_ => _.isCatcher);
-            if (chaser == null) return;
-
-            chaser.hrzFlippedUntil = Time.time + 1.8f * flipTime;
-            chaser.vrtFlippedUntil = Time.time + 1.8f * flipTime;
-        }
-
-        void StunNonChasers()
-        {
-            var nonChasers = PlayerController.GetNonChasers();
-            foreach (var player in nonChasers)
+            foreach (var target in targets)
             {
-                player.stunnedUntil = Time.time + 0.7f * PlayerController.dropStunPeriod;
+                target.stunnedUntil = Time.time + 0.7f * PlayerController.dropStunPeriod;
             }
         }
 
-        void TeleportCloseToChaser()
+        private void MakeSlippery(List<PlayerController> targets)
         {
-            var catcher = PlayerController.GetPlayers().FirstOrDefault(_ => _.isCatcher);
-            if (catcher == null) return;
+            var duration = FlipTime;
+            if (IsTargetCatcher(targets) == false)
+                duration *= Math.Max(GameController.Instance.ChaserSince / 25f, 1f);
 
-            var nonChasers = PlayerController.GetNonChasers();
-            foreach (var player in nonChasers)
+            foreach (var target in targets)
             {
-                var direction = new Vector3(Random.Range(-1, 1), Random.Range(-1, 1), 0).normalized;
-                var distance = Random.Range(teleportRangeMin, teleportRangeMax);
-
-                var pos = catcher.gameObject.transform.position + direction * distance;
-                player.Teleport(pos, new Vector2(1, 1));
+                target.slipperyUntil = Time.time + duration;
             }
         }
 
-        readonly Dictionary<RandomAction, int> catherRandomActionChances = new Dictionary<RandomAction, int> {
-            { RandomAction.None, 20 },
-            { RandomAction.FlipNonChasers, 35 },
-            { RandomAction.FlipChaser, 5 },
-            { RandomAction.StunNonChasers, 35 },
-            //{ RandomAction.TeleportClose, 35 }
+        private void AutoSetColor()
+        {
+            switch (action)
+            {
+                case RandomAction.FlipControls:
+                    renderer.color = new Color(255f / 255f, 255f / 255f, 255f / 255f);
+                    break;
+                case RandomAction.Stun:
+                    renderer.color = new Color(138f / 255f, 255f / 255f, 149f / 255f);
+                    break;
+                case RandomAction.Slippery:
+                    renderer.color = new Color(255f / 255f, 138f / 255f, 137f / 255f);
+                    break;
+                default:
+                    renderer.color = new Color(255f / 255f, 255f / 255f, 255f / 255f);
+                    break;
+            }
+        }
+
+        readonly Dictionary<RandomAction, int> randomActionChances = new Dictionary<RandomAction, int> {
+            { RandomAction.FlipControls, 30 },
+            { RandomAction.Stun, 30 },
+            { RandomAction.Slippery, 30 }
         };
-        readonly Dictionary<RandomAction, int> nonCatherRandomActionChances = new Dictionary<RandomAction, int> {
-            { RandomAction.None, 60 },
-            { RandomAction.FlipNonChasers, 5 },
-            { RandomAction.FlipChaser, 15 },
-            { RandomAction.StunNonChasers, 5 },
-            //{ RandomAction.TeleportClose, 15 }
-        };
-        RandomAction GetRandomAction(bool isCatcher)
+        RandomAction GetRandomAction()
         {
-            var chances = isCatcher ? catherRandomActionChances : nonCatherRandomActionChances;
-            var max = chances.Values.Sum();
+            var max = randomActionChances.Values.Sum();
 
             var selected = Random.Range(0, max);
 
             var pointer = 0;
-            foreach (var chance in chances)
+            foreach (var chance in randomActionChances)
             {
                 pointer += chance.Value;
                 if (pointer >= selected) return chance.Key;
             }
 
-            return chances.Last().Key; // fallback
+            return randomActionChances.Last().Key; // fallback
         }
 
         public enum RandomAction
         {
             None,
-            FlipNonChasers,
-            FlipChaser,
-            StunNonChasers,
-            TeleportClose
+            FlipControls,
+            Stun,
+            Slippery
         }
     }
 }

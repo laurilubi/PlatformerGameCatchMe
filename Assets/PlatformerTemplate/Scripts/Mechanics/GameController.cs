@@ -22,6 +22,8 @@ namespace Platformer.Mechanics
         //conveniently configured inside the inspector.
         public PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
+        public float ChaserSince;
+
         public void OnEnable()
         {
             Instance = this;

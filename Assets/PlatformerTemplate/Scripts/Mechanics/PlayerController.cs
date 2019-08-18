@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using Platformer.Gameplay;
 using static Platformer.Core.Simulation;
@@ -21,10 +22,11 @@ namespace Platformer.Mechanics
         public float defaultHrzAcc = 4;
 
 
-        internal JumpState jumpState = JumpState.Grounded;
-        internal bool stopJump;
         internal new Collider2D collider;
         internal new AudioSource audio;
+        internal Animator animator;
+        internal JumpState jumpState = JumpState.Grounded;
+        internal bool stopJump;
         internal float stunnedUntil;
         internal int jumpStepCount;
         internal bool isCatcher;
@@ -35,16 +37,16 @@ namespace Platformer.Mechanics
         internal float jumpTakeOffSpeed;
         internal float hrzFlippedUntil;
         internal float vrtFlippedUntil;
+        internal float slipperyUntil;
         internal float teleportableAfter;
         internal bool isDropping;
         internal float droppableAfter;
 
 
-        bool jump;
-        Vector2 move;
-        SpriteRenderer spriteRenderer;
-        internal Animator animator;
-        PlatformerModel model;
+        private bool jump;
+        private Vector2 move;
+        private SpriteRenderer spriteRenderer;
+        private PlatformerModel model;
 
         public const float minimum = 0.01f;
         public const float dropStunPeriod = 2.5f;
@@ -53,6 +55,7 @@ namespace Platformer.Mechanics
 
         public Bounds Bounds => collider.bounds;
 
+        [UsedImplicitly]
         void Awake()
         {
             audio = GetComponent<AudioSource>();
@@ -69,18 +72,21 @@ namespace Platformer.Mechanics
         protected override void Update()
         {
             var xAxis = GetXAxis();
+            var relHrzAcc = Time.time < slipperyUntil
+                ? hrzAcc * 0.6f
+                : hrzAcc;
             if (Mathf.Abs(xAxis) < minimum)
             {
                 // is stopping
                 if (move.x > minimum)
                 {
                     // still going right
-                    move.x = Math.Max(0, move.x - hrzAcc * 3 * Time.deltaTime);
+                    move.x = Math.Max(0, move.x - relHrzAcc * 3 * Time.deltaTime);
                 }
                 else if (move.x < -minimum)
                 {
                     // still going left
-                    move.x = Math.Min(0, move.x + hrzAcc * 3 * Time.deltaTime);
+                    move.x = Math.Min(0, move.x + relHrzAcc * 3 * Time.deltaTime);
                 }
                 else
                 {
@@ -90,7 +96,7 @@ namespace Platformer.Mechanics
             else
             {
                 // is moving
-                move.x += xAxis * hrzAcc * Time.deltaTime;
+                move.x += xAxis * relHrzAcc * Time.deltaTime;
                 move.x = Cap(move.x);
             }
 
@@ -106,11 +112,6 @@ namespace Platformer.Mechanics
                 velocity.x *= 2;
                 velocity.y = -2.5f * jumpTakeOffSpeed * model.jumpModifier;
             }
-            //else if (Input.GetButtonUp("Jump"))
-            //{
-            //    stopJump = true;
-            //    Schedule<PlayerStopJump>().player = this;
-            //}
 
             UpdateJumpState();
 
@@ -247,6 +248,8 @@ namespace Platformer.Mechanics
             maxSpeed = defaultMaxSpeed + 0.5f;
             jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
+
+            GameController.Instance.ChaserSince = Time.time;
 
             previousCatcher?.UnmakeCatcher(true);
         }
