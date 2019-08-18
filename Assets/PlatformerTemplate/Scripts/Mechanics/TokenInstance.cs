@@ -33,7 +33,7 @@ namespace Platformer.Mechanics
         internal float respawnAt;
         internal RandomAction action = RandomAction.None;
 
-        public const float FlipTime = 9;
+        public const float FlipTime = 7;
 
         [UsedImplicitly]
         private void Awake()
@@ -92,8 +92,6 @@ namespace Platformer.Mechanics
 
             switch (action)
             {
-                case RandomAction.None:
-                    break;
                 case RandomAction.FlipControls:
                     FlipControls(targets);
                     break;
@@ -110,8 +108,8 @@ namespace Platformer.Mechanics
         {
             if (player.isCatcher) return PlayerController.GetNonChasers().ToList();
 
-            var nonChasersChance = 10 + GameController.Instance.ChaserSince;
-            var nothingChance = 10 + 0.3f * GameController.Instance.ChaserSince;
+            var nonChasersChance = 10 + GameController.Instance.GetCatcherTime();
+            var nothingChance = 10 + 0.3f * GameController.Instance.GetCatcherTime();
             var catcherChance = 20;
             var dice = Random.Range(0, nonChasersChance + nothingChance + catcherChance);
 
@@ -129,7 +127,7 @@ namespace Platformer.Mechanics
         {
             var duration = FlipTime;
             if (IsTargetCatcher(targets) == false)
-                duration *= Math.Max(GameController.Instance.ChaserSince / 25f, 1f);
+                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 25f, 1f), 2.5f);
 
             foreach (var target in targets)
             {
@@ -150,7 +148,7 @@ namespace Platformer.Mechanics
         {
             var duration = FlipTime;
             if (IsTargetCatcher(targets) == false)
-                duration *= Math.Max(GameController.Instance.ChaserSince / 25f, 1f);
+                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 25f, 1f), 2.5f);
 
             foreach (var target in targets)
             {

@@ -73,7 +73,7 @@ namespace Platformer.Mechanics
         {
             var xAxis = GetXAxis();
             var relHrzAcc = Time.time < slipperyUntil
-                ? hrzAcc * 0.6f
+                ? hrzAcc * 0.5f
                 : hrzAcc;
             if (Mathf.Abs(xAxis) < minimum)
             {
@@ -113,6 +113,7 @@ namespace Platformer.Mechanics
                 velocity.y = -2.5f * jumpTakeOffSpeed * model.jumpModifier;
             }
 
+            //UpdateSlipperyRotation();
             UpdateJumpState();
 
             base.Update();
@@ -157,7 +158,7 @@ namespace Platformer.Mechanics
             return value;
         }
 
-        bool CanJump()
+        private bool CanJump()
         {
             if (Time.time < jumpableAfter) return false;
             if (isDropping) return false;
@@ -168,12 +169,12 @@ namespace Platformer.Mechanics
             return false;
         }
 
-        bool CanDrop()
+        private bool CanDrop()
         {
             return Time.time >= droppableAfter;
         }
 
-        void UpdateJumpState()
+        private void UpdateJumpState()
         {
             jump = false;
             switch (jumpState)
@@ -207,6 +208,38 @@ namespace Platformer.Mechanics
             }
         }
 
+        private float slipperRotationZDir = 70f;
+        private const float slipperyRotationMaxZ = 0.2f;
+        private void UpdateSlipperyRotation()
+        {
+            if (playerId != "P1") return;
+            //if (Time.time >= slipperyUntil)
+            //{
+            //    transform.rotation = new Quaternion(0, 0, 0, 0);
+            //    return;
+            //}
+
+            transform.Rotate(0, 0, slipperRotationZDir * Time.deltaTime);
+
+            var rotZ = transform.rotation.z;// + slipperRotationZDir * Time.deltaTime;
+            if (rotZ >= slipperyRotationMaxZ)
+            {
+                //rotZ = slipperyRotationMaxZ;
+                slipperRotationZDir *= -1;
+            }
+            else if (rotZ <= -slipperyRotationMaxZ)
+            {
+                //rotZ = -slipperyRotationMaxZ;
+                slipperRotationZDir *= -1;
+            }
+
+
+
+
+            //transform.RotateAroundLocal(new Vector3(0, 0, 0), rotZ); //..SetLookRotation(); = Quaternion.RotateTowards(0, 0, rotZ, 0);
+            //transform.Rotate(0, 0, rotZ); //..SetLookRotation(); = Quaternion.RotateTowards(0, 0, rotZ, 0);
+        }
+
         protected override void ComputeVelocity()
         {
             if (jump)
@@ -229,12 +262,17 @@ namespace Platformer.Mechanics
                 spriteRenderer.flipX = true;
 
             spriteRenderer.flipY = Time.time < vrtFlippedUntil;
-            var scaleY = Time.time < stunnedUntil
-                ? 0.2f
+            var scaleX = Time.time < slipperyUntil
+                ? 0.30f
                 : isCatcher
                     ? 0.55f
-                    : 0.4f;
-            spriteRenderer.transform.localScale = new Vector2(spriteRenderer.transform.localScale.x, scaleY);
+                    : 0.40f;
+            var scaleY = Time.time < stunnedUntil
+                ? 0.20f
+                : isCatcher
+                    ? 0.55f
+                    : 0.40f;
+            spriteRenderer.transform.localScale = new Vector2(scaleX, scaleY);
 
             animator.SetBool("grounded", IsGrounded);
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / maxSpeed);
@@ -249,7 +287,7 @@ namespace Platformer.Mechanics
             jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
 
-            GameController.Instance.ChaserSince = Time.time;
+            GameController.Instance.CatcherSince = Time.time;
 
             previousCatcher?.UnmakeCatcher(true);
         }

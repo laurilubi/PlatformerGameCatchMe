@@ -22,8 +22,9 @@ namespace Platformer.Mechanics
         //conveniently configured inside the inspector.
         public PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
-        public float ChaserSince;
+        public float CatcherSince;
 
+        [UsedImplicitly]
         public void OnEnable()
         {
             Instance = this;
@@ -89,5 +90,7 @@ namespace Platformer.Mechanics
             }
             model.activePlayers = activePlayers.ToArray();
         }
+
+        public float GetCatcherTime() => Time.time - CatcherSince;
     }
 }
