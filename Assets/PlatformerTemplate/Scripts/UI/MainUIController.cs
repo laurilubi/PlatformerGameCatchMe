@@ -1,7 +1,6 @@
 ﻿using Platformer.Mechanics;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,6 +26,7 @@ namespace Platformer.UI
             }
         }
 
+        [UsedImplicitly]
         void OnEnable()
         {
             GameController = GameController.Instance;
@@ -39,6 +39,7 @@ namespace Platformer.UI
         //    VisualizePlayerCount();
         //}
 
+        [UsedImplicitly]
         public void SetPlayerCount(int count)
         {
             GameController.model.activePlayerCount = count;
@@ -54,6 +55,7 @@ namespace Platformer.UI
             button.GetComponent<Button>().Select();
         }
 
+        [UsedImplicitly]
         public void SetLevel(int level)
         {
             var gameArea = GameObject.Find("GameArea");

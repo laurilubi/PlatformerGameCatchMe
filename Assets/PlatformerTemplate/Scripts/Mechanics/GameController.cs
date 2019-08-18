@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using Platformer.Core;
 using Platformer.Model;
 using UnityEngine;
@@ -51,11 +52,13 @@ namespace Platformer.Mechanics
             model.activePlayers = activePlayers.ToArray();
         }
 
+        [UsedImplicitly]
         void OnDisable()
         {
             if (Instance == this) Instance = null;
         }
 
+        [UsedImplicitly]
         void Update()
         {
             if (Instance == this) Simulation.Tick();
