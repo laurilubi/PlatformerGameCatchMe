@@ -1,0 +1,1 @@
+C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\ARM\Master\Upload\Platformer Catch Me_1.0.6.0_Master\Platformer Catch Me_1.0.6.0_x86_x64_arm_Master.msixbundle

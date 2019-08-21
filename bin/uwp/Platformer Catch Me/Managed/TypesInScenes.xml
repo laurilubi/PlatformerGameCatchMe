@@ -62,6 +62,7 @@
 		<type fullname="UnityEngine.RenderSettings" preserve="nothing"/>
 	</assembly>
 	<assembly fullname="Assembly-CSharp">
+		<type fullname="LetterboxCamera.ForceCameraRatio" preserve="nothing"/>
 		<type fullname="Platformer.Mechanics.DeathZone" preserve="nothing"/>
 		<type fullname="Platformer.Mechanics.GameController" preserve="nothing"/>
 		<type fullname="Platformer.Mechanics.PlayerController" preserve="nothing"/>

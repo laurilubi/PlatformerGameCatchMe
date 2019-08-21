@@ -1,0 +1,6 @@
+MainPackage=C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\ARM\Master\Platformer Catch Me_1.0.6.0_ARM_Master.msix
+SymbolPackage=C:\code\PlatformerGameCatchMe\bin\uwp\build\obj\Platformer Catch Me\ARM\Master\Symbols\Platformer Catch Me_1.0.6.0_ARM_Master.appxsym
+ResourcePack=C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\ARM\Master\Platformer Catch Me_1.0.6.0_scale-100.msix
+ResourcePack=C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\ARM\Master\Platformer Catch Me_1.0.6.0_scale-125.msix
+ResourcePack=C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\ARM\Master\Platformer Catch Me_1.0.6.0_scale-150.msix
+ResourcePack=C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\ARM\Master\Platformer Catch Me_1.0.6.0_scale-400.msix

@@ -1,0 +1,2 @@
+MainPackage=C:\code\PlatformerGameCatchMe\bin\uwp\build\bin\x64\Master\Platformer Catch Me_1.0.6.0_x64_Master.msix
+SymbolPackage=C:\code\PlatformerGameCatchMe\bin\uwp\build\obj\Platformer Catch Me\x64\Master\Symbols\Platformer Catch Me_1.0.6.0_x64_Master.appxsym
