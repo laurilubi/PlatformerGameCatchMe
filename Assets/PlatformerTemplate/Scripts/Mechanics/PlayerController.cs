@@ -122,6 +122,9 @@ namespace Platformer.Mechanics
 
             UpdateJumpState();
 
+            if (isCatcher)
+                catcherLastOn = Math.Min(Time.time, catcherLastOn + 5 * Time.deltaTime);
+
             base.Update();
         }
 

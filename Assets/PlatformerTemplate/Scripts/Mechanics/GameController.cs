@@ -30,7 +30,7 @@ namespace Platformer.Mechanics
         {
             Instance = this;
 
-            Thread.Sleep(1000); // a hack to get game objects initialized
+            Thread.Sleep(2000); // a hack to get game objects initialized
             SetupLevel(1);
             SetupPlayers(null);
         }

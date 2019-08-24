@@ -39,13 +39,13 @@ public class PlayerDrop : MonoBehaviour
         }
 
         // required for unknown reasons, otherwise catcher can stun someone without catching
-        if (player.isCatcher && PlayerCatch.CanBeCaught(otherPlayer))
+        if (player.isCatcher && PlayerCatch.CanBeCaught(otherPlayer, ignoreIsDropping: true))
         {
             otherPlayer.MakeCatcher(player);
         }
     }
 
-    private static PlayerController GetOtherPlayer(Collider2D other)
+    private PlayerController GetOtherPlayer(Collider2D other)
     {
         if (other.gameObject.name == "Drop") return other.gameObject.GetComponentInParent<PlayerController>();
         if (other.gameObject.name == "Catch") return other.gameObject.GetComponentInParent<PlayerController>();

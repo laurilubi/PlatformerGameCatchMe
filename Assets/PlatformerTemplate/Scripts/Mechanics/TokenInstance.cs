@@ -127,22 +127,36 @@ namespace Platformer.Mechanics
         {
             var duration = FlipTime;
             if (IsTargetCatcher(targets) == false)
-                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 35f, 1f), 2.5f);
+                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 35f, 1f), 1.5f);
 
             foreach (var target in targets)
             {
-                var overtime = Time.time - target.catcherLastOn - 40f;
-                if (overtime > 0)
-                {
-                    target.controlManipulation = (PlayerController.ControlManipulation)Random.Range((int)PlayerController.ControlManipulation.Flipped, (int)PlayerController.ControlManipulation.RotateRight);
-                    target.controlRotatedUntil = Time.time + duration + 0.25f * overtime;
-                }
-                else
+                var overtime = GetOvertime(target);
+                target.controlRotatedUntil = Time.time + duration + 0.1f * overtime;
+
+                if (Math.Abs(overtime) < 0.01f)
                 {
                     target.controlManipulation = PlayerController.ControlManipulation.Flipped;
-                    target.controlRotatedUntil = Time.time + duration;
+                    continue;
                 }
+
+                var dice = Random.Range(0f, 60f);
+                if (dice < overtime)
+                {
+                    target.controlManipulation = PlayerController.ControlManipulation.Flipped;
+                    continue;
+                }
+
+                target.controlManipulation = dice < 30f
+                    ? PlayerController.ControlManipulation.RotateLeft
+                    : PlayerController.ControlManipulation.RotateRight;
             }
+        }
+
+        private float GetOvertime(PlayerController target)
+        {
+            var overtime = Time.time - target.catcherLastOn - 20f;
+            return Math.Max(0, Math.Min(50f, overtime));
         }
 
         private void Stun(List<PlayerController> targets)
@@ -161,7 +175,8 @@ namespace Platformer.Mechanics
 
             foreach (var target in targets)
             {
-                target.slipperyUntil = Time.time + duration;
+                var overtime = GetOvertime(target);
+                target.slipperyUntil = Time.time + duration + 0.1f * overtime;
             }
         }
 
