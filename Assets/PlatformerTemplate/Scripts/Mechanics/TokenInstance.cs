@@ -127,7 +127,7 @@ namespace Platformer.Mechanics
         {
             var duration = FlipTime;
             if (IsTargetCatcher(targets) == false)
-                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 25f, 1f), 2.5f);
+                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 35f, 1f), 2.5f);
 
             foreach (var target in targets)
             {
@@ -148,7 +148,7 @@ namespace Platformer.Mechanics
         {
             var duration = FlipTime;
             if (IsTargetCatcher(targets) == false)
-                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 25f, 1f), 2.5f);
+                duration *= Math.Min(Math.Max(GameController.Instance.GetCatcherTime() / 35f, 1f), 2.5f);
 
             foreach (var target in targets)
             {
