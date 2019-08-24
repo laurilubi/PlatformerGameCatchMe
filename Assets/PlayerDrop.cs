@@ -17,11 +17,12 @@ public class PlayerDrop : MonoBehaviour
     {
         if (player.isDropping == false) return;
 
-        var otherPlayer = other.gameObject.GetComponent<PlayerController>();
+        var otherPlayer = GetOtherPlayer(other);
         if (otherPlayer == null)
         {
-            var isTouchingLevel = other.gameObject.name == "Level";
-            if (isTouchingLevel == false) return;
+            if (player.IsGrounded == false) return;
+            if (other.gameObject.name == "Level") return;
+            if (other.gameObject.name == "GameArea") return;
 
             player.isDropping = false;
 
@@ -32,6 +33,7 @@ public class PlayerDrop : MonoBehaviour
         }
 
         player.isDropping = false;
+        //player.catchableAfter = Time.time + 0.1f; // extra protection against catcher-bug
         if (otherPlayer.stunnedUntil < Time.time)
         {
             otherPlayer.stunnedUntil = Time.time + 1.1f * PlayerController.DropStunPeriod;
@@ -42,5 +44,12 @@ public class PlayerDrop : MonoBehaviour
         {
             otherPlayer.MakeCatcher(player);
         }
+    }
+
+    private static PlayerController GetOtherPlayer(Collider2D other)
+    {
+        if (other.gameObject.name == "Drop") return other.gameObject.GetComponentInParent<PlayerController>();
+        if (other.gameObject.name == "Catch") return other.gameObject.GetComponentInParent<PlayerController>();
+        return other.gameObject.GetComponent<PlayerController>();
     }
 }

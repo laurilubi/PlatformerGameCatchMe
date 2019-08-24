@@ -47,6 +47,7 @@ namespace Platformer.Mechanics
         private Vector2 move;
         private SpriteRenderer spriteRenderer;
         private PlatformerModel model;
+        private SpriteRenderer catcherSymbol;
 
         public const float minimum = 0.01f;
         public const float DropStunPeriod = 2.5f;
@@ -60,11 +61,12 @@ namespace Platformer.Mechanics
         public Bounds Bounds => collider.bounds;
 
         [UsedImplicitly]
-        void Awake()
+        private void Awake()
         {
             audio = GetComponent<AudioSource>();
             collider = GetComponent<Collider2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
+            catcherSymbol = transform.Find("CatcherSymbol").GetComponent<SpriteRenderer>();
             animator = GetComponent<Animator>();
             model = GetModel<PlatformerModel>();
 
@@ -188,7 +190,7 @@ namespace Platformer.Mechanics
                     stopJump = false;
                     if (IsGrounded) jumpStepCount = 0;
                     jumpStepCount++;
-                    jumpableAfter = Time.time + 0.25f;
+                    jumpableAfter = Time.time + 0.3f;
                     break;
                 case JumpState.Jumping:
                     if (!IsGrounded)
@@ -228,9 +230,17 @@ namespace Platformer.Mechanics
             }
 
             if (move.x > minimum)
+            {
                 spriteRenderer.flipX = false;
+                catcherSymbol.transform.localPosition = new Vector3(-0.163f, catcherSymbol.transform.localPosition.y, catcherSymbol.transform.localPosition.z);
+                catcherSymbol.flipX = false;
+            }
             else if (move.x < -minimum)
+            {
                 spriteRenderer.flipX = true;
+                catcherSymbol.transform.localPosition = new Vector3(0.163f, catcherSymbol.transform.localPosition.y, catcherSymbol.transform.localPosition.z);
+                catcherSymbol.flipX = true;
+            }
 
             spriteRenderer.flipY = Time.time < vrtFlippedUntil;
             var scaleX = Time.time < slipperyUntil
@@ -257,6 +267,7 @@ namespace Platformer.Mechanics
             maxSpeed = defaultMaxSpeed + 0.5f;
             jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(ScaleCatcher, ScaleCatcher);
+            if (catcherSymbol != null) catcherSymbol.enabled = true;
 
             GameController.Instance.CatcherSince = Time.time;
 
@@ -266,14 +277,22 @@ namespace Platformer.Mechanics
         public void UnmakeCatcher(bool teleport)
         {
             isCatcher = false;
+            maxSpeed = defaultMaxSpeed;
+            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
             catchableAfter = Time.time + 1f;
 
             transform.localScale = new Vector2(ScaleNormal, ScaleNormal);
-            maxSpeed = defaultMaxSpeed;
-            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
+            if (catcherSymbol != null) catcherSymbol.enabled = false;
 
             if (teleport)
                 TeleportRandom();
+        }
+
+        public override void Teleport(Vector3 position, Vector2? multiplier = null)
+        {
+            base.Teleport(position, multiplier);
+            isDropping = false;
+            jump = false;
         }
 
         public static PlayerController[] GetPlayers()

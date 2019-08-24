@@ -68,7 +68,7 @@ namespace Platformer.Mechanics
         /// Teleport to some position.
         /// </summary>
         /// <param name="position"></param>
-        public void Teleport(Vector3 position, Vector2? multiplier = null)
+        public virtual void Teleport(Vector3 position, Vector2? multiplier = null)
         {
             multiplier = multiplier ?? new Vector2(0, 0);
 
