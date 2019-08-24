@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerDrop : MonoBehaviour
 {
-    PlayerController player;
+    private PlayerController player;
 
     [UsedImplicitly]
     private void Start()
@@ -20,7 +20,6 @@ public class PlayerDrop : MonoBehaviour
         var otherPlayer = other.gameObject.GetComponent<PlayerController>();
         if (otherPlayer == null)
         {
-
             var isTouchingLevel = other.gameObject.name == "Level";
             if (isTouchingLevel == false) return;
 
@@ -28,14 +27,20 @@ public class PlayerDrop : MonoBehaviour
 
             if (Time.time < player.hrzFlippedUntil || Time.time < player.vrtFlippedUntil) return; // no penatly if flipped
 
-            player.stunnedUntil = Time.time + 0.4f * PlayerController.dropStunPeriod;
+            player.stunnedUntil = Time.time + 0.4f * PlayerController.DropStunPeriod;
             return;
         }
 
         player.isDropping = false;
         if (otherPlayer.stunnedUntil < Time.time)
         {
-            otherPlayer.stunnedUntil = Time.time + 1.1f * PlayerController.dropStunPeriod;
+            otherPlayer.stunnedUntil = Time.time + 1.1f * PlayerController.DropStunPeriod;
+        }
+
+        // required for unknown reasons, otherwise catcher can stun someone without catching
+        if (player.isCatcher && PlayerCatch.CanBeCaught(otherPlayer))
+        {
+            otherPlayer.MakeCatcher(player);
         }
     }
 }

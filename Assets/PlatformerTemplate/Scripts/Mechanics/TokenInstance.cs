@@ -140,7 +140,7 @@ namespace Platformer.Mechanics
         {
             foreach (var target in targets)
             {
-                target.stunnedUntil = Time.time + 0.7f * PlayerController.dropStunPeriod;
+                target.stunnedUntil = Time.time + 0.7f * PlayerController.DropStunPeriod;
             }
         }
 

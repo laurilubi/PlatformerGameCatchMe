@@ -49,9 +49,13 @@ namespace Platformer.Mechanics
         private PlatformerModel model;
 
         public const float minimum = 0.01f;
-        public const float dropStunPeriod = 2.5f;
+        public const float DropStunPeriod = 2.5f;
         public const float DefaultJumpTakeOffSpeed = 6.2f;
         public const float CatcherJumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
+        public const float ScaleNormal = 0.38f;
+        public const float ScaleCatcher = 0.46f;
+        public const float ScaleSlipperyX = 0.28f;
+        public const float ScaleStunnedY = 0.18f;
 
         public Bounds Bounds => collider.bounds;
 
@@ -109,11 +113,10 @@ namespace Platformer.Mechanics
             {
                 isDropping = true;
                 droppableAfter = Time.time + 2;
-                velocity.x *= 2;
-                velocity.y = -2.5f * jumpTakeOffSpeed * model.jumpModifier;
+                velocity.x *= 3;
+                velocity.y = -5f * jumpTakeOffSpeed * model.jumpModifier;
             }
 
-            //UpdateSlipperyRotation();
             UpdateJumpState();
 
             base.Update();
@@ -208,38 +211,6 @@ namespace Platformer.Mechanics
             }
         }
 
-        private float slipperRotationZDir = 70f;
-        private const float slipperyRotationMaxZ = 0.2f;
-        private void UpdateSlipperyRotation()
-        {
-            if (playerId != "P1") return;
-            //if (Time.time >= slipperyUntil)
-            //{
-            //    transform.rotation = new Quaternion(0, 0, 0, 0);
-            //    return;
-            //}
-
-            transform.Rotate(0, 0, slipperRotationZDir * Time.deltaTime);
-
-            var rotZ = transform.rotation.z;// + slipperRotationZDir * Time.deltaTime;
-            if (rotZ >= slipperyRotationMaxZ)
-            {
-                //rotZ = slipperyRotationMaxZ;
-                slipperRotationZDir *= -1;
-            }
-            else if (rotZ <= -slipperyRotationMaxZ)
-            {
-                //rotZ = -slipperyRotationMaxZ;
-                slipperRotationZDir *= -1;
-            }
-
-
-
-
-            //transform.RotateAroundLocal(new Vector3(0, 0, 0), rotZ); //..SetLookRotation(); = Quaternion.RotateTowards(0, 0, rotZ, 0);
-            //transform.Rotate(0, 0, rotZ); //..SetLookRotation(); = Quaternion.RotateTowards(0, 0, rotZ, 0);
-        }
-
         protected override void ComputeVelocity()
         {
             if (jump)
@@ -263,15 +234,15 @@ namespace Platformer.Mechanics
 
             spriteRenderer.flipY = Time.time < vrtFlippedUntil;
             var scaleX = Time.time < slipperyUntil
-                ? 0.30f
+                ? ScaleSlipperyX
                 : isCatcher
-                    ? 0.55f
-                    : 0.40f;
+                    ? ScaleCatcher
+                    : ScaleNormal;
             var scaleY = Time.time < stunnedUntil
-                ? 0.20f
+                ? ScaleStunnedY
                 : isCatcher
-                    ? 0.55f
-                    : 0.40f;
+                    ? ScaleCatcher
+                    : ScaleNormal;
             spriteRenderer.transform.localScale = new Vector2(scaleX, scaleY);
 
             animator.SetBool("grounded", IsGrounded);
@@ -285,7 +256,7 @@ namespace Platformer.Mechanics
             isCatcher = true;
             maxSpeed = defaultMaxSpeed + 0.5f;
             jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
-            if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(0.55f, 0.55f);
+            if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(ScaleCatcher, ScaleCatcher);
 
             GameController.Instance.CatcherSince = Time.time;
 
@@ -295,9 +266,9 @@ namespace Platformer.Mechanics
         public void UnmakeCatcher(bool teleport)
         {
             isCatcher = false;
-            catchableAfter = Time.time + 0.1f;
+            catchableAfter = Time.time + 1f;
 
-            transform.localScale = new Vector2(0.4f, 0.4f);
+            transform.localScale = new Vector2(ScaleNormal, ScaleNormal);
             maxSpeed = defaultMaxSpeed;
             jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
 
