@@ -21,12 +21,11 @@ public class PlayerDrop : MonoBehaviour
         if (otherPlayer == null)
         {
             if (player.IsGrounded == false) return;
-            if (other.gameObject.name == "Level") return;
-            if (other.gameObject.name == "GameArea") return;
+            if (other.gameObject.name != "Level") return;
 
             player.isDropping = false;
 
-            if (Time.time < player.hrzFlippedUntil || Time.time < player.vrtFlippedUntil) return; // no penatly if flipped
+            if (player.GetControlManipulation() != PlayerController.ControlManipulation.Normal) return; // no penatly if controls messed up
 
             player.stunnedUntil = Time.time + 0.4f * PlayerController.DropStunPeriod;
             return;

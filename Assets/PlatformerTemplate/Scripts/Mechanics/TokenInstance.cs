@@ -131,8 +131,17 @@ namespace Platformer.Mechanics
 
             foreach (var target in targets)
             {
-                target.hrzFlippedUntil = Time.time + duration;
-                target.vrtFlippedUntil = Time.time + duration;
+                var overtime = Time.time - target.catcherLastOn - 40f;
+                if (overtime > 0)
+                {
+                    target.controlManipulation = (PlayerController.ControlManipulation)Random.Range((int)PlayerController.ControlManipulation.Flipped, (int)PlayerController.ControlManipulation.RotateRight);
+                    target.controlRotatedUntil = Time.time + duration + 0.25f * overtime;
+                }
+                else
+                {
+                    target.controlManipulation = PlayerController.ControlManipulation.Flipped;
+                    target.controlRotatedUntil = Time.time + duration;
+                }
             }
         }
 

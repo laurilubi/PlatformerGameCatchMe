@@ -35,12 +35,13 @@ namespace Platformer.Mechanics
         internal float hrzAcc;
         internal float maxSpeed;
         internal float jumpTakeOffSpeed;
-        internal float hrzFlippedUntil;
-        internal float vrtFlippedUntil;
+        internal ControlManipulation controlManipulation;
+        internal float controlRotatedUntil;
         internal float slipperyUntil;
         internal float teleportableAfter;
         internal bool isDropping;
         internal float droppableAfter;
+        internal float catcherLastOn;
 
 
         private bool jump;
@@ -131,13 +132,20 @@ namespace Platformer.Mechanics
                 return 0;
             }
 
-            var xAxis = Input.GetAxis($"{playerId}-Horizontal");
-            if (xAxis < -minimum) xAxis = -1;
-            else if (xAxis > minimum) xAxis = 1;
-            else xAxis = 0;
+            var controlRotation = GetControlManipulation();
+            var axisName = controlRotation == ControlManipulation.Normal || controlRotation == ControlManipulation.Flipped
+                ? $"{playerId}-Horizontal"
+                : $"{playerId}-Vertical";
 
-            if (Time.time < hrzFlippedUntil) xAxis *= -1;
-            return xAxis;
+            var x = Input.GetAxis(axisName);
+            if (x < -minimum) x = -1;
+            else if (x > minimum) x = 1;
+            else x = 0;
+
+            if (controlRotation == ControlManipulation.Flipped || controlRotation == ControlManipulation.RotateRight)
+                x *= -1;
+
+            return x;
         }
 
         private float GetYAxis()
@@ -147,13 +155,17 @@ namespace Platformer.Mechanics
                 return 0;
             }
 
-            var yAxis = Input.GetAxis($"{playerId}-Vertical");
+            var controlRotation = GetControlManipulation();
+            var axisName = controlRotation == ControlManipulation.Normal || controlRotation == ControlManipulation.Flipped
+                ? $"{playerId}-Vertical"
+                : $"{playerId}-Horizontal";
 
-            if (Time.time < vrtFlippedUntil)
-            {
-                yAxis *= -1;
-            }
-            return yAxis;
+            var y = Input.GetAxis(axisName);
+
+            if (controlRotation == ControlManipulation.Flipped || controlRotation == ControlManipulation.RotateRight)
+                y *= -1;
+
+            return y;
         }
 
         private float Cap(float value, float minValue = -1, float maxValue = 1)
@@ -242,7 +254,14 @@ namespace Platformer.Mechanics
                 catcherSymbol.flipX = true;
             }
 
-            spriteRenderer.flipY = Time.time < vrtFlippedUntil;
+            spriteRenderer.flipY = GetControlManipulation() == ControlManipulation.Flipped;
+            var rotZ = GetControlManipulation() == ControlManipulation.RotateLeft
+                ? -45
+                : GetControlManipulation() == ControlManipulation.RotateRight
+                    ? 45
+                    : 0;
+            spriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, rotZ);
+
             var scaleX = Time.time < slipperyUntil
                 ? ScaleSlipperyX
                 : isCatcher
@@ -295,6 +314,13 @@ namespace Platformer.Mechanics
             jump = false;
         }
 
+        public ControlManipulation GetControlManipulation()
+        {
+            return Time.time < controlRotatedUntil
+                ? controlManipulation
+                : ControlManipulation.Normal;
+        }
+
         public static PlayerController[] GetPlayers()
         {
             return GameController.Instance.model.activePlayers.ToArray();
@@ -312,6 +338,14 @@ namespace Platformer.Mechanics
             Jumping,
             InFlight,
             Landed
+        }
+
+        public enum ControlManipulation
+        {
+            Normal = 0,
+            Flipped = 1,
+            RotateLeft = 2,
+            RotateRight = 3
         }
     }
 }
