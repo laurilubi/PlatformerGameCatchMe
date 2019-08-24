@@ -35,18 +35,20 @@ namespace Platformer.Mechanics
         internal float hrzAcc;
         internal float maxSpeed;
         internal float jumpTakeOffSpeed;
-        internal float hrzFlippedUntil;
-        internal float vrtFlippedUntil;
+        internal ControlManipulation controlManipulation;
+        internal float controlRotatedUntil;
         internal float slipperyUntil;
         internal float teleportableAfter;
         internal bool isDropping;
         internal float droppableAfter;
+        internal float catcherLastOn;
 
 
         private bool jump;
         private Vector2 move;
         private SpriteRenderer spriteRenderer;
         private PlatformerModel model;
+        private SpriteRenderer catcherSymbol;
 
         public const float minimum = 0.01f;
         public const float DropStunPeriod = 2.5f;
@@ -60,11 +62,12 @@ namespace Platformer.Mechanics
         public Bounds Bounds => collider.bounds;
 
         [UsedImplicitly]
-        void Awake()
+        private void Awake()
         {
             audio = GetComponent<AudioSource>();
             collider = GetComponent<Collider2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
+            catcherSymbol = transform.Find("CatcherSymbol").GetComponent<SpriteRenderer>();
             animator = GetComponent<Animator>();
             model = GetModel<PlatformerModel>();
 
@@ -119,6 +122,9 @@ namespace Platformer.Mechanics
 
             UpdateJumpState();
 
+            if (isCatcher)
+                catcherLastOn = Math.Min(Time.time, catcherLastOn + 5 * Time.deltaTime);
+
             base.Update();
         }
 
@@ -129,13 +135,20 @@ namespace Platformer.Mechanics
                 return 0;
             }
 
-            var xAxis = Input.GetAxis($"{playerId}-Horizontal");
-            if (xAxis < -minimum) xAxis = -1;
-            else if (xAxis > minimum) xAxis = 1;
-            else xAxis = 0;
+            var controlRotation = GetControlManipulation();
+            var axisName = controlRotation == ControlManipulation.Normal || controlRotation == ControlManipulation.Flipped
+                ? $"{playerId}-Horizontal"
+                : $"{playerId}-Vertical";
 
-            if (Time.time < hrzFlippedUntil) xAxis *= -1;
-            return xAxis;
+            var x = Input.GetAxis(axisName);
+            if (x < -minimum) x = -1;
+            else if (x > minimum) x = 1;
+            else x = 0;
+
+            if (controlRotation == ControlManipulation.Flipped || controlRotation == ControlManipulation.RotateRight)
+                x *= -1;
+
+            return x;
         }
 
         private float GetYAxis()
@@ -145,13 +158,17 @@ namespace Platformer.Mechanics
                 return 0;
             }
 
-            var yAxis = Input.GetAxis($"{playerId}-Vertical");
+            var controlRotation = GetControlManipulation();
+            var axisName = controlRotation == ControlManipulation.Normal || controlRotation == ControlManipulation.Flipped
+                ? $"{playerId}-Vertical"
+                : $"{playerId}-Horizontal";
 
-            if (Time.time < vrtFlippedUntil)
-            {
-                yAxis *= -1;
-            }
-            return yAxis;
+            var y = Input.GetAxis(axisName);
+
+            if (controlRotation == ControlManipulation.Flipped || controlRotation == ControlManipulation.RotateRight)
+                y *= -1;
+
+            return y;
         }
 
         private float Cap(float value, float minValue = -1, float maxValue = 1)
@@ -188,7 +205,7 @@ namespace Platformer.Mechanics
                     stopJump = false;
                     if (IsGrounded) jumpStepCount = 0;
                     jumpStepCount++;
-                    jumpableAfter = Time.time + 0.25f;
+                    jumpableAfter = Time.time + 0.3f;
                     break;
                 case JumpState.Jumping:
                     if (!IsGrounded)
@@ -228,11 +245,26 @@ namespace Platformer.Mechanics
             }
 
             if (move.x > minimum)
+            {
                 spriteRenderer.flipX = false;
+                catcherSymbol.transform.localPosition = new Vector3(-0.163f, catcherSymbol.transform.localPosition.y, catcherSymbol.transform.localPosition.z);
+                catcherSymbol.flipX = false;
+            }
             else if (move.x < -minimum)
+            {
                 spriteRenderer.flipX = true;
+                catcherSymbol.transform.localPosition = new Vector3(0.163f, catcherSymbol.transform.localPosition.y, catcherSymbol.transform.localPosition.z);
+                catcherSymbol.flipX = true;
+            }
 
-            spriteRenderer.flipY = Time.time < vrtFlippedUntil;
+            spriteRenderer.flipY = GetControlManipulation() == ControlManipulation.Flipped;
+            var rotZ = GetControlManipulation() == ControlManipulation.RotateLeft
+                ? -45
+                : GetControlManipulation() == ControlManipulation.RotateRight
+                    ? 45
+                    : 0;
+            spriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, rotZ);
+
             var scaleX = Time.time < slipperyUntil
                 ? ScaleSlipperyX
                 : isCatcher
@@ -257,6 +289,7 @@ namespace Platformer.Mechanics
             maxSpeed = defaultMaxSpeed + 0.5f;
             jumpTakeOffSpeed = CatcherJumpTakeOffSpeed;
             if (spriteRenderer?.transform != null) spriteRenderer.transform.localScale = new Vector2(ScaleCatcher, ScaleCatcher);
+            if (catcherSymbol != null) catcherSymbol.enabled = true;
 
             GameController.Instance.CatcherSince = Time.time;
 
@@ -266,14 +299,29 @@ namespace Platformer.Mechanics
         public void UnmakeCatcher(bool teleport)
         {
             isCatcher = false;
+            maxSpeed = defaultMaxSpeed;
+            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
             catchableAfter = Time.time + 1f;
 
             transform.localScale = new Vector2(ScaleNormal, ScaleNormal);
-            maxSpeed = defaultMaxSpeed;
-            jumpTakeOffSpeed = DefaultJumpTakeOffSpeed;
+            if (catcherSymbol != null) catcherSymbol.enabled = false;
 
             if (teleport)
                 TeleportRandom();
+        }
+
+        public override void Teleport(Vector3 position, Vector2? multiplier = null)
+        {
+            base.Teleport(position, multiplier);
+            isDropping = false;
+            jump = false;
+        }
+
+        public ControlManipulation GetControlManipulation()
+        {
+            return Time.time < controlRotatedUntil
+                ? controlManipulation
+                : ControlManipulation.Normal;
         }
 
         public static PlayerController[] GetPlayers()
@@ -293,6 +341,14 @@ namespace Platformer.Mechanics
             Jumping,
             InFlight,
             Landed
+        }
+
+        public enum ControlManipulation
+        {
+            Normal = 0,
+            Flipped = 1,
+            RotateLeft = 2,
+            RotateRight = 3
         }
     }
 }

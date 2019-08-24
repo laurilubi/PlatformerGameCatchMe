@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerDrop : MonoBehaviour
 {
-    PlayerController player;
+    private PlayerController player;
 
     [UsedImplicitly]
     private void Start()
@@ -17,30 +17,38 @@ public class PlayerDrop : MonoBehaviour
     {
         if (player.isDropping == false) return;
 
-        var otherPlayer = other.gameObject.GetComponent<PlayerController>();
+        var otherPlayer = GetOtherPlayer(other);
         if (otherPlayer == null)
         {
-            var isTouchingLevel = other.gameObject.name == "Level";
-            if (isTouchingLevel == false) return;
+            if (player.IsGrounded == false) return;
+            if (other.gameObject.name != "Level") return;
 
             player.isDropping = false;
 
-            if (Time.time < player.hrzFlippedUntil || Time.time < player.vrtFlippedUntil) return; // no penatly if flipped
+            if (player.GetControlManipulation() != PlayerController.ControlManipulation.Normal) return; // no penatly if controls messed up
 
             player.stunnedUntil = Time.time + 0.4f * PlayerController.DropStunPeriod;
             return;
         }
 
         player.isDropping = false;
+        //player.catchableAfter = Time.time + 0.1f; // extra protection against catcher-bug
         if (otherPlayer.stunnedUntil < Time.time)
         {
             otherPlayer.stunnedUntil = Time.time + 1.1f * PlayerController.DropStunPeriod;
         }
 
         // required for unknown reasons, otherwise catcher can stun someone without catching
-        if (player.isCatcher && PlayerCatch.CanBeCaught(otherPlayer))
+        if (player.isCatcher && PlayerCatch.CanBeCaught(otherPlayer, ignoreIsDropping: true))
         {
             otherPlayer.MakeCatcher(player);
         }
+    }
+
+    private PlayerController GetOtherPlayer(Collider2D other)
+    {
+        if (other.gameObject.name == "Drop") return other.gameObject.GetComponentInParent<PlayerController>();
+        if (other.gameObject.name == "Catch") return other.gameObject.GetComponentInParent<PlayerController>();
+        return other.gameObject.GetComponent<PlayerController>();
     }
 }

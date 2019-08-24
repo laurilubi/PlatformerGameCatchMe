@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using JetBrains.Annotations;
 using Platformer.Core;
 using Platformer.Model;
@@ -25,22 +26,23 @@ namespace Platformer.Mechanics
         public float CatcherSince;
 
         [UsedImplicitly]
-        public void OnEnable()
+        private void OnEnable()
         {
             Instance = this;
 
+            Thread.Sleep(2000); // a hack to get game objects initialized
             SetupLevel(1);
             SetupPlayers(null);
         }
 
         [UsedImplicitly]
-        void OnDisable()
+        private void OnDisable()
         {
             if (Instance == this) Instance = null;
         }
 
         [UsedImplicitly]
-        void Update()
+        private void Update()
         {
             if (Instance == this) Simulation.Tick();
         }
